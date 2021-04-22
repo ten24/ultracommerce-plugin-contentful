@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@commercelayer/js-auth": "2.0.1",
     "@contentful/app-sdk": "^3.33.0",
     "@contentful/ecommerce-app-base": "^2.1.0",
     "@contentful/field-editor-single-line": "^0.14.1",
@@ -45,5 +46,8 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "."
+  "homepage": ".",
+  "devDependencies": {
+    "@types/lodash": "^4.14.168"
+  }
 }

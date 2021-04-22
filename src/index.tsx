@@ -4,84 +4,149 @@ import '@contentful/forma-36-react-components/dist/styles.css';
 import '@contentful/forma-36-fcss/dist/styles.css';
 import '@contentful/forma-36-tokens/dist/css/index.css';
 import { setup, renderSkuPicker } from '@contentful/ecommerce-app-base';
+// import CLayerAuth from '@commercelayer/js-auth';
 
 import logo from './assets/slatwall.svg';
-import { fetchProductPreviews, makeProductSearchResolver } from './productResolvers'
+import chunk from 'lodash/chunk';
+import flatMap from 'lodash/flatMap';
+import difference from 'lodash/difference';
 import LocalhostWarning from './components/LocalhostWarning';
+import { dataTransformer } from './dataTransformer';
 
-const DIALOG_ID = 'dialog-root';
+const DIALOG_ID = 'root';
 const PER_PAGE = 20;
+var accessToken: any = null;
 
 function makeCTA(fieldType: any) {
   return fieldType === 'Array' ? 'Select products' : 'Select a product';
 }
 
-export function validateParameters(parameters: any) {
-  if (parameters.storefrontAccessToken.length < 1) {
-    return 'Provide the storefront access token to your slatwall store.';
-  }
+function validateParameters(parameters: any) {
   if (parameters.apiEndpoint.length < 1) {
     return 'Provide the slatwall API endpoint.';
   }
   return null;
 }
 
-function isDisabled(/* currentValue, config */) {
-  // No restrictions need to be imposed as to when the field is disabled from the app's side
-  return false;
-}
+// async function getAccessToken() {
+//   let accessTokens: any = ''
+//   if (!accessToken) {
+//     accessTokens = (
+//       await CLayerAuth.getIntegrationToken({
+//         clientId: 'wXqRQI8me0saW5nGXpAZAGjdTfv4mf-UT7bxi7kTKE8',
+//         endpoint: 'https://the-green-brand-112.commercelayer.io',
+//         clientSecret: ''
+//       })
+//     );
+//     console.log('accessToken......', accessTokens.accessToken)
+//   }
+//   return accessTokens.accessToken;
+// }
 
-let products = [{
-  id: '1',
-  image: 'https://images-na.ssl-images-amazon.com/images/I/71ZIrJ6XLLL._SL1500_.jpg',
-  productId: '123',
-  name: 'Watch',
-  sku: '11'
-},
-{
-  id: '2',
-  image: 'https://contents.mediadecathlon.com/p1484240/k$ab565f3675dbdd7e3c486175e2c16583/men-s-travel-trekking-shirt-travel100-warm-bordeaux.jpg?&f=x',
-  productId: '123',
-  name: 'shirt',
-  sku: '12'
-},
-{
-  id: '3',
-  image: 'https://static.digit.in/product/97036a3ef3b60f99a34cf0e16fb867896146a6e2.jpeg?tr=w-1200',
-  productId: '123',
-  name: 'mobile',
-  sku: '13'
-},
-{
-  id: '4',
-  image: 'https://5.imimg.com/data5/PQ/KY/MY-37987079/cello-butterflow-pen-pack-of-5-700x700-500x500.jpg',
-  productId: '123',
-  name: 'pen',
-  sku: '14'
-}]
-
-async function fetchSKUs(installationParams: any, search: String, pagination: any) {
+async function fetchSKUs(installationParams: any, search: any, pagination: any) {
   const validationError = validateParameters(installationParams);
   if (validationError) {
     throw new Error(validationError);
   }
+  const { apiEndpoint } = installationParams;
+  // const accessToken = await getAccessToken();
 
-  const { clientId, apiEndpoint } = installationParams;
-  // const accessToken = await getAccessToken(clientId, apiEndpoint);
-
-  // const URL = `${apiEndpoint}/api/skus?page[size]=${PER_PAGE}&page[number]=${pagination.offset /
+  // const URL = `https://the-green-brand-112.commercelayer.io/api/skus?page[size]=${PER_PAGE}&page[number]=${pagination.offset /
   //   PER_PAGE +
   //   1}${search.length ? `&filter[q][name_or_code_cont]=${search}` : ''}`;
 
   // const res = await fetch(URL, {
   //   headers: {
   //     Accept: 'application/vnd.api+json',
-  //     Authorization: `Bearer ${accessToken}`
+  //     Authorization: `Bearer eyJhbGciOiJIUzUxMiJ9.eyJvcmdhbml6YXRpb24iOnsiaWQiOiJ6bkJFckZKTm9YIn0sImFwcGxpY2F0aW9uIjp7ImlkIjoiYXBFbWFpV2JWcCIsImtpbmQiOiJjb250ZW50ZnVsIiwicHVibGljIjp0cnVlfSwidGVzdCI6dHJ1ZSwiZXhwIjoxNjE5MTAwNzQ5LCJyYW5kIjowLjg4ODUwNDU2MTAwMzYyOTh9.NDQKdKxY4gY-V03mikRzXUYLQVEiWAgxbx8UyYRJ8P5m4tDaFXzGG-sjRs-huOiN3aqL7Z5RSKFj9fCzOQTwkA`
   //   },
   //   method: 'GET'
   // });
 
-  return products;
+  // console.log('res,,,,,,,,', await res.json())
+  let response: any = []
+  let init = {
+    hostname: 'slatwall.mitrahsoft.co.in',
+    AccessKey: 'B44ACE4E36B498BFCE066FD5CF2881C5C540F570',
+    AccessKeySecret: 'ODM0MjQ4REVBNDY1ODY4REJCNTY1MkJCRDZGOTQzQUVDMDg2NEZCMw=='
+  }
+
+  const slatwall = require("../src/Slatwall/slatwall")(init)
+
+  var res = await slatwall.products.get()
+  console.log('res....', JSON.parse(res))
+  response = JSON.parse(res).pageRecords
+  console.log('response', response)
+  return response;
+}
+
+const fetchProductPreviews = async function fetchProductPreviews(skus: any, config: any) {
+  console.log('fetchProductPreviews....')
+  if (!skus.length) {
+    return [];
+  }
+
+  const PREVIEWS_PER_PAGE = 25;
+  console.log('config', config)
+
+  // const { apiEndpoint } = config;
+  // const accessToken = await getAccessToken( apiEndpoint);
+
+  const resultPromises = chunk(skus, PREVIEWS_PER_PAGE).map(async skusSubset => {
+    // const URL = `${apiEndpoint}/api/skus?page[size]=${PREVIEWS_PER_PAGE}&filter[q][code_in]=${skusSubset}`;
+    // const URL = `https://the-green-brand-112.commercelayer.io/api/skus?page[size]=${PREVIEWS_PER_PAGE}&filter[q][code_in]=${skusSubset}`;
+    const URL = `https://slatwall.mitrahsoft.co.in/api/skus?page[size]=${PREVIEWS_PER_PAGE}&filter[q][code_in]=${skusSubset}`;
+    const res = await fetch(URL, {
+      headers: {
+        Accept: 'application/vnd.api+json',
+        Authorization: `Bearer eyJhbGciOiJIUzUxMiJ9.eyJvcmdhbml6YXRpb24iOnsiaWQiOiJ6bkJFckZKTm9YIn0sImFwcGxpY2F0aW9uIjp7ImlkIjoiYXBFbWFpV2JWcCIsImtpbmQiOiJjb250ZW50ZnVsIiwicHVibGljIjp0cnVlfSwidGVzdCI6dHJ1ZSwiZXhwIjoxNjE5MTAwNzQ5LCJyYW5kIjowLjg4ODUwNDU2MTAwMzYyOTh9.NDQKdKxY4gY-V03mikRzXUYLQVEiWAgxbx8UyYRJ8P5m4tDaFXzGG-sjRs-huOiN3aqL7Z5RSKFj9fCzOQTwkA`
+      },
+      method: 'GET'
+    });
+    return await res.json();
+  });
+
+  const results = await Promise.all(resultPromises);
+
+  const foundProducts = flatMap(results, ({ data }) =>
+    // data.map(dataTransformer(config.apiEndpoint))
+    data.map(dataTransformer('https://the-green-brand-112.commercelayer.io'))
+  );
+
+  const missingProducts = difference(
+    skus,
+    foundProducts.map(product => product.sku)
+  ).map(sku => ({ sku, isMissing: true, image: '', name: '', id: '' }));
+
+  return [...foundProducts, ...missingProducts];
+};
+
+async function renderDialog(sdk: any) {
+  const container = document.createElement('div');
+  container.style.display = 'flex';
+  container.style.flexDirection = 'column';
+
+  renderSkuPicker(DIALOG_ID, {
+    sdk,
+    fetchProductPreviews,
+    fetchProducts: async (search, pagination) => {
+      const result = await fetchSKUs(sdk.parameters.installation, search, pagination);
+      return {
+        pagination: {
+          count: PER_PAGE,
+          limit: PER_PAGE,
+          // total: result.meta.record_count,
+          total: 10,
+          offset: 1
+        },
+        // products: result.data.map(dataTransformer(sdk.parameters.installation.apiEndpoint))
+        // products: result.data.map(dataTransformer('https://the-green-brand-112.commercelayer.io'))
+        products: []
+      };
+    }
+  });
+
+  sdk.window.startAutoResizer();
 }
 
 async function openDialog(sdk: any, currentValue: any, config: any) {
@@ -98,32 +163,9 @@ async function openDialog(sdk: any, currentValue: any, config: any) {
   return Array.isArray(skus) ? skus : [];
 }
 
-async function renderDialog(sdk: any) {
-  const container = document.createElement('div');
-  container.id = DIALOG_ID;
-  container.style.display = 'flex';
-  container.style.flexDirection = 'column';
-  document.body.appendChild(container);
-
-  renderSkuPicker(DIALOG_ID, {
-    sdk,
-    fetchProductPreviews,
-    fetchProducts: async (search, pagination) => {
-      const result = await fetchSKUs(sdk.parameters.installation, search, pagination);
-      return {
-        pagination: {
-          count: PER_PAGE,
-          limit: PER_PAGE,
-          total: result.length,
-          offset: 1
-        },
-        products
-      };
-    },
-    searchDelay: 750
-  });
-
-  sdk.window.startAutoResizer();
+function isDisabled(/* currentValue, config */) {
+  // No restrictions need to be imposed as to when the field is disabled from the app's side
+  return false;
 }
 
 if (process.env.NODE_ENV === 'development' && window.self === window.top) {
@@ -138,13 +180,13 @@ if (process.env.NODE_ENV === 'development' && window.self === window.top) {
     color: '#212F3F',
     description: 'The Slatwall app allows editors to select products from their Slatwall account and reference them inside of Contentful entries.',
     parameterDefinitions: [
-      {
-        id: 'storefrontAccessToken',
-        name: 'Storefront Access Token',
-        description: 'The storefront access token to your Slatwall store',
-        type: 'Symbol',
-        required: true
-      },
+      // {
+      //   id: 'storefrontAccessToken',
+      //   name: 'Storefront Access Token',
+      //   description: 'The storefront access token to your Slatwall store',
+      //   type: 'Symbol',
+      //   required: true
+      // },
       {
         id: 'apiEndpoint',
         name: 'API Endpoint',

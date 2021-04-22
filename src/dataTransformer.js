@@ -1,54 +1,19 @@
 import get from 'lodash/get';
-import last from 'lodash/last';
-import flatten from 'lodash/flatten';
 
 /**
- * Transforms the API response of Shopify into
+ * Transforms the API response of CommerceLayer into
  * the product schema expected by the SkuPicker component
  */
-export const dataTransformer = product => {
-    const image = get(product, ['image', 'src'], '');
-    const sku = get(product, ['sku'], '');
-
-    return {
-        id: product.id,
-        image,
-        name: product.title,
-        sku
-    };
-};
-
-export const productsToVariantsTransformer = products =>
-    flatten(
-        products.map(product => {
-            const variants = product.variants.map(variant => ({
-                ...variant,
-                variantSKU: variant.sku,
-                sku: variant.id,
-                productId: product.id,
-                title: product.title,
-            }));
-            return variants;
-        })
-    );
-
-export const previewsToVariants = ({ apiEndpoint }) => ({ sku, id, image, product }) => {
-    const productIdDecoded = atob(product.id);
-    const productId =
-        productIdDecoded && productIdDecoded.slice(productIdDecoded.lastIndexOf('/') + 1);
+export const dataTransformer = projectUrl => product => {
+    const { id } = product;
+    const image = get(product, ['imageUrl']) || get(product, ['attributes', 'image_url']);
+    const name = get(product, ['name']) || get(product, ['attributes', 'name']);
+    const sku = get(product, ['code']) || get(product, ['attributes', 'code']);
     return {
         id,
-        image: get(image, ['src'], ''),
-        // TODO: Remove sku:id when @contentful/ecommerce-app-base supports internal IDs
-        // as an alternative piece of info to persist instead of the SKU.
-        // For now this is a temporary hack.
-        sku: id,
-        productId: product.id,
-        name: product.title,
-        ...(apiEndpoint &&
-            productId && {
-            externalLink: `https://${apiEndpoint}${last(apiEndpoint) === '/' ? '' : '/'
-                }admin/products/${productId}`
-        })
+        image,
+        name,
+        sku,
+        externalLink: `${projectUrl}/admin/skus/${id}/edit`
     };
 };
