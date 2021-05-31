@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@commercelayer/js-auth": "2.0.1",
     "@contentful/app-sdk": "^3.33.0",
     "@contentful/ecommerce-app-base": "^2.1.0",
     "@contentful/field-editor-single-line": "^0.14.1",
@@ -11,7 +10,7 @@
     "@contentful/forma-36-fcss": "^0.3.1",
     "@contentful/forma-36-react-components": "^3.87.0",
     "@contentful/forma-36-tokens": "^0.10.1",
-    "@slatwall/slatwall-sdk": "*",
+    "@slatwall/slatwall-sdk": "^1.0.5-alpha",
     "@testing-library/jest-dom": "^5.11.10",
     "@testing-library/react": "^11.2.6",
     "@testing-library/user-event": "^13.1.4",
