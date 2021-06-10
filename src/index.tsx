@@ -17,7 +17,7 @@ import {
 
 const DIALOG_ID = "root";
 const PER_PAGE = 20;
-var accessToken: any = null;
+// var accessToken: any = null;
 
 function makeCTA(fieldType: any) {
   return fieldType === "Array" ? "Select products" : "Select a product";
