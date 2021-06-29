@@ -10,7 +10,7 @@
     "@contentful/forma-36-fcss": "^0.3.1",
     "@contentful/forma-36-react-components": "^3.87.0",
     "@contentful/forma-36-tokens": "^0.10.1",
-    "@slatwall/slatwall-sdk": "^1.0.5-alpha",
+    "@slatwall/slatwall-sdk": "1.1.7-alpha",
     "@testing-library/jest-dom": "^5.11.10",
     "@testing-library/react": "^11.2.6",
     "@testing-library/user-event": "^13.1.4",
@@ -46,7 +46,5 @@
     ]
   },
   "homepage": ".",
-  "devDependencies": {
-    "@types/lodash": "^4.14.168"
-  }
+  "devDependencies": {}
 }
