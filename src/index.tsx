@@ -144,7 +144,7 @@ async function renderDialog(sdk: any) {
   sdk.window.startAutoResizer();
 }
 
-async function openDialog(sdk: any, config: any) {
+async function openDialog(sdk: any, currentValue: any, config: any) {
   const skus = await sdk.dialogs.openCurrentApp({
     allowHeightOverflow: true,
     position: "center",
