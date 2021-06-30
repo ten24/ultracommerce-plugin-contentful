@@ -1,12 +1,9 @@
-import { render } from "react-dom";
-
 import "@contentful/forma-36-react-components/dist/styles.css";
 import "@contentful/forma-36-fcss/dist/styles.css";
 import "@contentful/forma-36-tokens/dist/css/index.css";
 import { setup, renderSkuPicker } from "@contentful/ecommerce-app-base";
 
 import logo from "./assets/slatwall.svg";
-import LocalhostWarning from "./components/LocalhostWarning";
 import {
   singleProductdataTransformer,
   multipleProductdataTransformers,
@@ -25,9 +22,6 @@ function _chunk(array: any, size = 1) {
   return arrayChunks;
 }
 
-function makeCTA(fieldType: any) {
-  return fieldType === "Array" ? "Select products" : "Select a product";
-}
 // it validates the config values
 function validateParameters(parameters: any) {
   if (parameters.apiEndpoint.length < 1) {
@@ -78,6 +72,7 @@ const fetchProductPreviews = async function fetchProductPreviews(
     host: apiEndpoint,
   });
 
+  // we get get last updated products ids in skus
   // chunk used for split the data
   const resultPromises = _chunk(skus, PREVIEWS_PER_PAGE).map(
     async (skusSubset) => {
@@ -143,12 +138,12 @@ async function renderDialog(sdk: any) {
 
   sdk.window.startAutoResizer();
 }
-
+// to open the dialog modal
 async function openDialog(sdk: any, currentValue: any, config: any) {
   const skus = await sdk.dialogs.openCurrentApp({
     allowHeightOverflow: true,
     position: "center",
-    title: makeCTA(sdk.field.type),
+    title: "Select products",
     shouldCloseOnOverlayClick: true,
     shouldCloseOnEscapePress: true,
     parameters: config,
@@ -163,31 +158,27 @@ function isDisabled(/* currentValue, config */) {
   return false;
 }
 
-if (process.env.NODE_ENV === "development" && window.self === window.top) {
-  // You can remove this if block before deploying your app
-  const root = document.getElementById("root");
-  render(<LocalhostWarning />, root);
-} else {
-  setup({
-    makeCTA,
-    name: "Slatwall",
-    logo,
-    color: "#212F3F",
-    description:
-      "The Slatwall app allows editors to select products from their Slatwall account and reference them inside of Contentful entries.",
-    parameterDefinitions: [
-      {
-        id: "apiEndpoint",
-        name: "API Endpoint",
-        description: "The Slatwall API endpoint",
-        type: "Symbol",
-        required: true,
-      },
-    ],
-    validateParameters: validateParameters,
-    fetchProductPreviews,
-    renderDialog,
-    openDialog,
-    isDisabled,
-  });
-}
+// initially setup is called
+setup({
+  //Returns the text that is displayed on the button in the field location (makeCTA).
+  makeCTA: () => "Select products",
+  name: "Slatwall",
+  logo,
+  color: "#212F3F",
+  description:
+    "The Slatwall app allows editors to select products from their Slatwall account and reference them inside of Contentful entries.",
+  parameterDefinitions: [
+    {
+      id: "apiEndpoint",
+      name: "API Endpoint",
+      description: "The Slatwall API endpoint",
+      type: "Symbol",
+      required: true,
+    },
+  ],
+  validateParameters: validateParameters,
+  fetchProductPreviews,
+  renderDialog,
+  openDialog,
+  isDisabled,
+});

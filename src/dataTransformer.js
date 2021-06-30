@@ -2,6 +2,8 @@
  * Transforms the API response of slatwall into
  * the product schema expected by the SkuPicker component
  */
+
+// we got different keys for all products API and multiproducts API so we used 2 functions.
 export const singleProductdataTransformer =
   (projectUrl) =>
   ({ sku_skuID, sku_imageFile, product_productName, product_productCode }) => {
