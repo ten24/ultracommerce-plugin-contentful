@@ -1,8 +1,4 @@
-import "@contentful/forma-36-react-components/dist/styles.css";
-import "@contentful/forma-36-fcss/dist/styles.css";
-import "@contentful/forma-36-tokens/dist/css/index.css";
 import { setup, renderSkuPicker } from "@contentful/ecommerce-app-base";
-
 import logo from "./assets/slatwall.svg";
 import {
   singleProductdataTransformer,
@@ -10,6 +6,7 @@ import {
 } from "./dataTransformer";
 import preloadData from "./preload";
 const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
+
 const DIALOG_ID = "root";
 const { PREVIEWS_PER_PAGE } = preloadData;
 
@@ -73,7 +70,7 @@ const fetchProductPreviews = async function fetchProductPreviews(
   });
 
   // we get get last updated products ids in skus
-  // chunk used for split the data
+  // chunk used for split the data (if we got 50 sku's we need to split it by previous per page) for pagination.
   const resultPromises = _chunk(skus, PREVIEWS_PER_PAGE).map(
     async (skusSubset) => {
       let params = {
@@ -114,7 +111,7 @@ async function renderDialog(sdk: any) {
   // picker modal data
   renderSkuPicker(DIALOG_ID, {
     sdk,
-    fetchProductPreviews,
+    fetchProductPreviews, // to initialize the selected products (shortant property)
     fetchProducts: async (search, pagination) => {
       const result = await fetchSKUs(
         sdk.parameters.installation,
@@ -126,7 +123,7 @@ async function renderDialog(sdk: any) {
         pagination: {
           count: PREVIEWS_PER_PAGE,
           limit: PREVIEWS_PER_PAGE,
-          total: result.data.products.length,
+          total: 50,
           offset: 1,
         },
         products: result.data.products.map(
@@ -161,12 +158,12 @@ function isDisabled(/* currentValue, config */) {
 // initially setup is called
 setup({
   //Returns the text that is displayed on the button in the field location (makeCTA).
-  makeCTA: () => "Select products",
-  name: "Slatwall",
-  logo,
-  color: "#212F3F",
+  makeCTA: () => "Select products", // name of field button
+  name: "Slatwall", // name of config screen
+  logo, // logo of field button and config screen
+  color: "#212F3F", // bg color of config screen
   description:
-    "The Slatwall app allows editors to select products from their Slatwall account and reference them inside of Contentful entries.",
+    "The Slatwall app allows editors to select products from their Slatwall account and reference them inside of Contentful entries.", // desc of config screen
   parameterDefinitions: [
     {
       id: "apiEndpoint",
@@ -175,10 +172,10 @@ setup({
       type: "Symbol",
       required: true,
     },
-  ],
-  validateParameters: validateParameters,
-  fetchProductPreviews,
-  renderDialog,
-  openDialog,
-  isDisabled,
+  ], // what are the parameters we want to show in config screen we need to give here, as of now we want the api endpoint from the user.
+  validateParameters: validateParameters, // to check the given parameter values are empty
+  fetchProductPreviews, // to show the previously selected products in the field
+  renderDialog, // to show the all products and preview the selected products in the dialog modal
+  openDialog, // to render the dialog modal design.
+  isDisabled, // to disable the select products button
 });
