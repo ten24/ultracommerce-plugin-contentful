@@ -93,9 +93,9 @@ const fetchProductPreviews = async function fetchProductPreviews(
   const results = await Promise.all(resultPromises);
 
   const foundProducts = results.flatMap(({ data }) => {
-    return data.map(multipleProductdataTransformers(apiEndpoint));
+    return data.map(multipleProductdataTransformers());
   });
-
+  // if any products are missed from API we need to the products with missed label
   const missingProducts = skus
     .filter(
       (data: any) => !foundProducts.map((product) => product.sku).includes(data)
@@ -123,12 +123,10 @@ async function renderDialog(sdk: any) {
         pagination: {
           count: PREVIEWS_PER_PAGE,
           limit: PREVIEWS_PER_PAGE,
-          total: 50,
+          total: 50, // as of now we are not getting total products in API so given static total.
           offset: 1,
         },
-        products: result.data.products.map(
-          singleProductdataTransformer(sdk.parameters.installation.apiEndpoint)
-        ),
+        products: result.data.products.map(singleProductdataTransformer()),
       };
     },
   });

@@ -4,40 +4,34 @@
  */
 
 // we got different keys for all products API and multiproducts API so we used 2 functions.
+import preloadData from "./preload";
+const { imageURL, placeHolderImage, imagePath } = preloadData;
 export const singleProductdataTransformer =
-  (projectUrl) =>
+  () =>
   ({ sku_skuID, sku_imageFile, product_productName, product_productCode }) => {
     // we need to pass the image name and sku as empty so we used ternary here.
-    const image = sku_imageFile
-      ? sku_imageFile
-      : "https://lh3.googleusercontent.com/f4wX2JJcJRVbtGedb6Is06kfl1Lb4KV2p6_XAzusHS1rZ0JSH1_eUkG-0YA6u5fkSjg1FQ=s85";
+    const image = sku_imageFile ? sku_imageFile : placeHolderImage;
     const name = product_productName ? product_productName : "";
+    // As per the API we can get the multiple products using the product code only, so I have used the product code as sku.
     const sku = product_productCode ? product_productCode : "";
     return {
       sku_skuID,
-      image:
-        "https://contentful.slatwallcommerce-dev.io" +
-        "/custom/assets/images/product/default/" +
-        image,
+      image: imageURL + imagePath + image,
       name,
       sku,
-      externalLink: `${projectUrl}/admin/skus/${sku_skuID}/edit`,
     };
   };
 export const multipleProductdataTransformers =
-  (projectUrl) =>
-  ({ defaultSku_skuID, imageUrl, productName, productCode }) => {
+  () =>
+  ({ defaultSku_skuID, productName, productCode, images }) => {
     // we need to pass the image name and sku as empty so we used ternary here.
-    const image = imageUrl
-      ? imageUrl
-      : "https://lh3.googleusercontent.com/f4wX2JJcJRVbtGedb6Is06kfl1Lb4KV2p6_XAzusHS1rZ0JSH1_eUkG-0YA6u5fkSjg1FQ=s85";
+    const image = images.length > 0 ? images[0] : placeHolderImage;
     const name = productName ? productName : "";
     const sku = productCode ? productCode : "";
     return {
       sku_skuID: defaultSku_skuID,
-      image,
+      image: imageURL + image,
       name,
       sku,
-      externalLink: `${projectUrl}/admin/skus/${defaultSku_skuID}/edit`,
     };
   };
