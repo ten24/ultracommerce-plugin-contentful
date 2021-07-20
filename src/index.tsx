@@ -51,11 +51,9 @@ async function fetchSKUs(
     keyword: search,
     pageSize: PREVIEWS_PER_PAGE,
   };
-  const resp = await SlatwalApiService.products
-    .search(payload)
-    .then((response: any) => {
-      return response;
-    });
+  const resp = await SlatwalApiService.products.list().then((response: any) => {
+    return response;
+  });
   return resp.success();
 }
 
@@ -118,7 +116,7 @@ function test(sdk: any) {
       }}
     >
       <label>Select Product types</label>
-      <select id="types" onChange={() => console.log("onchange")}>
+      <select id="types" onChange={() => fetchSKUs(sdk, "", 1)}>
         <option>Soccer</option>
         <option>BaseBall</option>
         <option>Goals</option>
@@ -148,6 +146,7 @@ async function renderDialog(sdk: any) {
         search,
         pagination
       );
+      console.log("result", result);
 
       return {
         pagination: {
@@ -156,7 +155,7 @@ async function renderDialog(sdk: any) {
           total: 50, // as of now we are not getting total products in API so given static total.
           offset: 1,
         },
-        products: result.data.products.map(singleProductdataTransformer()),
+        products: result.data.products.map(multipleProductdataTransformers()),
       };
     },
   });
