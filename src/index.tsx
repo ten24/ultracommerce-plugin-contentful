@@ -1,4 +1,6 @@
+import ReactDOMServer from "react-dom/server";
 import { setup, renderSkuPicker } from "@contentful/ecommerce-app-base";
+// import { setup, renderSkuPicker } from "./contentfulLibrary/@contentful/ecommerce-app-base";
 import logo from "./assets/slatwall.svg";
 import {
   singleProductdataTransformer,
@@ -33,6 +35,8 @@ async function fetchSKUs(
   search: any,
   pagination: any
 ) {
+  console.log("search", search);
+
   const validationError = validateParameters(installationParams);
   if (validationError) {
     throw new Error(validationError);
@@ -104,14 +108,40 @@ const fetchProductPreviews = async function fetchProductPreviews(
   return [...foundProducts, ...missingProducts];
 };
 
+function test(sdk: any) {
+  return (
+    <div
+      style={{
+        justifyContent: "space-between",
+        flexDirection: "row",
+        display: "flex",
+      }}
+    >
+      <label>Select Product types</label>
+      <select id="types" onChange={() => console.log("onchange")}>
+        <option>Soccer</option>
+        <option>BaseBall</option>
+        <option>Goals</option>
+        <option>Socks</option>
+      </select>
+      <label>Select Categories</label>
+      <select id="Categories" onChange={() => console.log("onchange")}>
+        <option>Hockey</option>
+        <option>Soccer</option>
+        <option>Golf</option>
+        <option>Sports</option>
+      </select>
+    </div>
+  );
+}
+
 async function renderDialog(sdk: any) {
   const container = document.createElement("div");
-  container.style.display = "flex";
-  container.style.flexDirection = "column";
-  // picker modal data
+  container.innerHTML = ReactDOMServer.renderToString(test(sdk));
+  document.body.prepend(container);
   renderSkuPicker(DIALOG_ID, {
     sdk,
-    fetchProductPreviews, // to initialize the selected products (shortant property)
+    fetchProductPreviews: fetchProductPreviews, // to initialize the selected products (shortant property)
     fetchProducts: async (search, pagination) => {
       const result = await fetchSKUs(
         sdk.parameters.installation,
@@ -130,7 +160,6 @@ async function renderDialog(sdk: any) {
       };
     },
   });
-
   sdk.window.startAutoResizer();
 }
 // to open the dialog modal
