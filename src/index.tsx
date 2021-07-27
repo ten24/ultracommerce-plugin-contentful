@@ -1,25 +1,17 @@
-import ReactDOMServer from "react-dom/server";
-import { setup, renderSkuPicker } from "@contentful/ecommerce-app-base";
-// import { setup, renderSkuPicker } from "./contentfulLibrary/@contentful/ecommerce-app-base";
+import { render } from "react-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { setup } from "@contentful/ecommerce-app-base";
 import logo from "./assets/slatwall.svg";
-import {
-  singleProductdataTransformer,
-  multipleProductdataTransformers,
-} from "./dataTransformer";
+import { singleProductdataTransformer } from "./dataTransformer";
 import preloadData from "./preload";
+import ProductsPicker from "./picker";
+import { _chunk } from "./utils";
 const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
+
+var axios = require("axios");
 
 const DIALOG_ID = "root";
 const { PREVIEWS_PER_PAGE } = preloadData;
-
-function _chunk(array: any, size = 1) {
-  let arrayChunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    let arrayChunk = array.slice(i, i + size);
-    arrayChunks.push(arrayChunk);
-  }
-  return arrayChunks;
-}
 
 // it validates the config values
 function validateParameters(parameters: any) {
@@ -27,34 +19,6 @@ function validateParameters(parameters: any) {
     return "Provide the slatwall API endpoint.";
   }
   return null;
-}
-
-// to get all products to show in the dialogue modal
-async function fetchSKUs(
-  installationParams: any,
-  search: any,
-  pagination: any
-) {
-  console.log("search", search);
-
-  const validationError = validateParameters(installationParams);
-  if (validationError) {
-    throw new Error(validationError);
-  }
-  const { apiEndpoint } = installationParams;
-
-  let SlatwalApiService = SlatwalSDK.init({
-    host: apiEndpoint,
-  });
-  let payload = {
-    currentPage: pagination.offset / PREVIEWS_PER_PAGE + 1,
-    keyword: search,
-    pageSize: PREVIEWS_PER_PAGE,
-  };
-  const resp = await SlatwalApiService.products.list().then((response: any) => {
-    return response;
-  });
-  return resp.success();
 }
 
 // to preview the last updated products get it from API
@@ -75,27 +39,28 @@ const fetchProductPreviews = async function fetchProductPreviews(
   // chunk used for split the data (if we got 50 sku's we need to split it by previous per page) for pagination.
   const resultPromises = _chunk(skus, PREVIEWS_PER_PAGE).map(
     async (skusSubset) => {
-      let params = {
-        "f:publishedFlag": 1,
-        "f:productCode:in": skusSubset.map((data: any) => data).join(","),
-        entityName: "Product",
-        includeAttributesMetadata: true,
-        pageSize: PREVIEWS_PER_PAGE,
+      var config = {
+        method: "get",
+        url: `${apiEndpoint}/api/public/product/?f:productID:in=${skusSubset
+          .map((data: any) => data)
+          .join(",")}`,
       };
-      const resp = await SlatwalApiService.general
-        .getEntity(params)
-        .then((response: any) => {
-          return response;
-        });
 
-      return resp.success();
+      let res = await axios(config)
+        .then(function (response: any) {
+          return response.data;
+        })
+        .catch(function (error: any) {
+          console.log(error);
+        });
+      return res;
     }
   );
 
   const results = await Promise.all(resultPromises);
 
   const foundProducts = results.flatMap(({ data }) => {
-    return data.map(multipleProductdataTransformers());
+    return data.map(singleProductdataTransformer());
   });
   // if any products are missed from API we need to the products with missed label
   const missingProducts = skus
@@ -106,59 +71,16 @@ const fetchProductPreviews = async function fetchProductPreviews(
   return [...foundProducts, ...missingProducts];
 };
 
-function test(sdk: any) {
-  return (
-    <div
-      style={{
-        justifyContent: "space-between",
-        flexDirection: "row",
-        display: "flex",
-      }}
-    >
-      <label>Select Product types</label>
-      <select id="types" onChange={() => fetchSKUs(sdk, "", 1)}>
-        <option>Soccer</option>
-        <option>BaseBall</option>
-        <option>Goals</option>
-        <option>Socks</option>
-      </select>
-      <label>Select Categories</label>
-      <select id="Categories" onChange={() => console.log("onchange")}>
-        <option>Hockey</option>
-        <option>Soccer</option>
-        <option>Golf</option>
-        <option>Sports</option>
-      </select>
-    </div>
-  );
-}
-
 async function renderDialog(sdk: any) {
-  const container = document.createElement("div");
-  container.innerHTML = ReactDOMServer.renderToString(test(sdk));
-  document.body.prepend(container);
-  renderSkuPicker(DIALOG_ID, {
-    sdk,
-    fetchProductPreviews: fetchProductPreviews, // to initialize the selected products (shortant property)
-    fetchProducts: async (search, pagination) => {
-      const result = await fetchSKUs(
-        sdk.parameters.installation,
-        search,
-        pagination
-      );
-      console.log("result", result);
-
-      return {
-        pagination: {
-          count: PREVIEWS_PER_PAGE,
-          limit: PREVIEWS_PER_PAGE,
-          total: 50, // as of now we are not getting total products in API so given static total.
-          offset: 1,
-        },
-        products: result.data.products.map(multipleProductdataTransformers()),
-      };
-    },
-  });
+  const root = document.getElementById(DIALOG_ID);
+  render(
+    <ProductsPicker
+      validateParameters={validateParameters}
+      sdk={sdk}
+      fetchProductPreviews={fetchProductPreviews}
+    />,
+    root
+  );
   sdk.window.startAutoResizer();
 }
 // to open the dialog modal
