@@ -3,6 +3,8 @@ import { mapSort } from "./utils";
 import get from "lodash/get";
 import { Button, TextInput, Icon } from "@contentful/forma-36-react-components";
 import preloadData from "./preload";
+import Slider from "react-slick";
+// import "../src/assets/app.scss";
 const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
 var axios = require("axios");
 
@@ -23,6 +25,7 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedProdType, setSelectedProdType] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState([]);
+  const [isHovered, setHover] = useState(false);
 
   useEffect(() => {
     getProductTypes();
@@ -125,13 +128,10 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   };
 
   const selectProduct = (selectedProd) => {
-    // let skus = selectedProducts.filter((data) => data.productID);
-    if (selectedSKUs.includes(selectedProd.productID)) {
-      setSelectedSKUs(
-        selectedSKUs.filter((val) => val !== selectedProd.productID)
-      );
+    if (selectedSKUs.includes(selectedProd)) {
+      setSelectedSKUs(selectedSKUs.filter((val) => val !== selectedProd));
     } else {
-      setSelectedSKUs([...selectedSKUs, selectedProd.productID]);
+      setSelectedSKUs([...selectedSKUs, selectedProd]);
     }
   };
   const onClickSaveBtn = () => {
@@ -164,21 +164,65 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
     }
     setSelectedProdType(arr);
   };
-
+  var settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: selectedProducts.length > 7 ? 7 : selectedProducts.length,
+    slidesToScroll: 1,
+  };
   return (
     <div
       style={{
         height: 800,
-        width: 1375,
+        width: 1575,
         margin: "10px 0px 0px 10px",
+        // display: "flex",
+        // flexDirection: "column",
+        // justifyContent: "center",
       }}
     >
+      <div
+        style={{
+          justifyContent: "center",
+          width: "50%",
+          marginBottom: "36px",
+          marginLeft: "30%",
+        }}
+      >
+        <Slider {...settings}>
+          {selectedProducts.length &&
+            selectedProducts.map((val) => {
+              return (
+                <div
+                  onMouseOver={() => setHover(true)}
+                  onMouseLeave={() => setHover(false)}
+                  key={val.sku_skuID}
+                >
+                  <img src={val.image} alt="Product1" height={50} />
+                  {isHovered && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "23px",
+                      }}
+                      onClick={() => selectProduct(val.sku_skuID)}
+                    >
+                      <Icon color="muted" icon="Close" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </Slider>
+      </div>
       <div
         style={{
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
           padding: 5,
+          paddingTop: 10,
           width: "100%",
         }}
       >
@@ -195,26 +239,7 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
           />
           <span>Total results:{products.length}</span>
         </div>
-        <div
-          style={{
-            flexDirection: "row",
-            display: "flex",
-            flexWrap: "nowrap",
-            overflow: "auto",
-            whiteSpace: "nowrap",
-            justifyContent: "flex-end",
-          }}
-        >
-          {selectedProducts.length
-            ? selectedProducts.map((val) => {
-                return (
-                  <div onClick={() => selectProduct(val)}>
-                    <img src={val.image} alt="Product1" height={50} />
-                  </div>
-                );
-              })
-            : null}
-        </div>
+
         <Button
           buttonType="primary"
           onClick={onClickSaveBtn}
@@ -223,46 +248,19 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
           {`Save ${selectedSKUs.length} Products`}
         </Button>
       </div>
-      <div
-        style={{
-          justifyContent: "space-around",
-          flexDirection: "row",
-          display: "flex",
-          backgroundColor: "#eee",
-          paddingTop: "10px",
-          paddingBottom: "10px",
-        }}
-        className="category"
-        id="filter-category"
-      >
-        <div className="productType">
-          <h3>Select Product Types</h3>
-          {productTypes.length > 0 &&
-            productTypes.map((ptype) => {
-              return (
-                <div style={{ padding: "3px" }} key={ptype.productTypeID}>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      name="productType"
-                      value={ptype.productTypeIDPath}
-                      style={{ marginRight: "7px" }}
-                      onChange={(e) => selectProductType(e.target.value)}
-                    />
-                    <label className="form-check-label">
-                      {ptype.productTypeName}
-                    </label>
-                    <br />
-                  </div>
-                </div>
-              );
-            })}
-        </div>
-        <div className="category">
-          <h3>Select Categories</h3>
-          {categories.length > 0
-            ? categories.map((cat) => {
+      <div className="row mt-3">
+        <div className="col-lg-3">
+          <div
+            className="bg-light"
+            style={{ paddingLeft: "inherit", paddingRight: "inherit" }}
+          >
+            <div className="pt-3">
+              <h5>Filter By</h5>
+            </div>
+            <hr />
+            <h6>Categories</h6>
+            {categories.length > 0 &&
+              categories.map((cat) => {
                 return (
                   <div style={{ padding: "3px" }} key={cat.categoryID}>
                     <div className="form-check">
@@ -281,102 +279,130 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
                     </div>
                   </div>
                 );
-              })
-            : null}
+              })}
+            <div className="pt-3">
+              <h6>Product Types</h6>
+              {productTypes.length > 0 &&
+                productTypes.map((ptype) => {
+                  return (
+                    <div style={{ padding: "3px" }} key={ptype.productTypeID}>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          name="productType"
+                          value={ptype.productTypeIDPath}
+                          style={{ marginRight: "7px" }}
+                          onChange={(e) => selectProductType(e.target.value)}
+                        />
+                        <label className="form-check-label">
+                          {ptype.productTypeName}
+                        </label>
+                        <br />
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="row p-5">
-        {products.map((data) => {
-          return (
-            <div className="col-lg-3 col-md-6 mb-4" key={data.productID}>
-              <div
-                className={`card ${
-                  selectedSKUs.includes(data.productID)
-                    ? "border-primary border-2"
-                    : "border-secondary"
-                }`}
-                style={{ height: 450 }}
-                onClick={() => selectProduct(data)}
-              >
-                <img
-                  src={`${preloadData.imageURL}${data.images[1]}`}
-                  className="img-fluid"
-                  alt="Product1"
-                />
-                <div className="card-body">
-                  <h5>{data.productName}</h5>
-                  <div className="d-flex justify-content-between mt-3">
-                    <p className="text-secondary">
-                      <s>{data.defaultSku_skuPrices_listPrice}</s>
-                    </p>
-                    <p>{data.defaultSku_skuPrices_price}</p>
+
+        <div className="col-lg-8" style={{ marginLeft: "35px" }}>
+          <div className="row">
+            {products.map((data) => {
+              return (
+                <div className="col-lg-4 col-md-6 mb-4" key={data.productID}>
+                  <div
+                    className={`card ${
+                      selectedSKUs.includes(data.productID)
+                        ? "border-primary border-2"
+                        : "border-secondary"
+                    }`}
+                    style={{ height: 450 }}
+                    onClick={() => selectProduct(data.productID)}
+                  >
+                    <img
+                      src={`${preloadData.imageURL}${data.images[1]}`}
+                      className="img-fluid"
+                      alt="Product1"
+                    />
+                    <div className="card-body">
+                      <h5>{data.productName}</h5>
+                      <div className="d-flex justify-content-between mt-3">
+                        <p className="text-secondary">
+                          <s>{data.defaultSku_skuPrices_listPrice}</s>
+                        </p>
+                        <p>{data.defaultSku_skuPrices_price}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div>
-        <nav
-          className="d-flex justify-content-between pt-2"
-          aria-label="Page navigation"
-        >
-          <ul className="mx-auto pagination">
-            {pageNumber > 1 && (
-              <li className="page-item">
-                <div
-                  className="page-link clickable"
-                  aria-label="Previous"
-                  onClick={(evt) => {
-                    evt.preventDefault();
-                    setPageNumber(pageNumber - 1);
-                  }}
-                >
-                  <span aria-hidden="true" className="me-1">
-                    &laquo;
-                  </span>
-                  <span className="sr-only">Previous</span>
-                </div>
-              </li>
-            )}
-            <li className="page-item">
-              <span
-                style={{
-                  color: "black",
-                  position: "relative",
-                  display: "blockrelative",
-                  border: "1px solid #dee2e6relative",
-                  padding: 5,
-                  textDecoration: "none",
-                  backgroundColor: "#fff",
-                  borderTopRightRadius: "0.25rem",
-                  borderBottomRightRadius: "0.25rem",
-                }}
-              >
-                {pageNumber}
-              </span>
-            </li>
-
-            {products.length === preloadData.PREVIEWS_PER_PAGE && (
-              <li className="page-item">
-                <div
-                  className="page-link clickable"
-                  aria-label="Next"
-                  onClick={(evt) => {
-                    evt.preventDefault();
-                    setPageNumber(pageNumber + 1);
-                  }}
-                >
-                  <span className="sr-only">Next</span>
-                  <span aria-hidden="true" className="ms-1">
-                    &raquo;
-                  </span>
-                </div>
-              </li>
-            )}
-          </ul>
-        </nav>
+              );
+            })}
+          </div>
+          <div>
+            <nav
+              className="d-flex justify-content-between pt-2"
+              aria-label="Page navigation"
+            >
+              <ul className="mx-auto pagination">
+                {pageNumber > 1 && (
+                  <li className="page-item">
+                    <div
+                      className="page-link clickable"
+                      aria-label="Previous"
+                      onClick={(evt) => {
+                        evt.preventDefault();
+                        setPageNumber(pageNumber - 1);
+                      }}
+                    >
+                      <span aria-hidden="true" className="me-1">
+                        &laquo;
+                      </span>
+                      <span className="sr-only">Previous</span>
+                    </div>
+                  </li>
+                )}
+                {products.length > 0 && (
+                  <li className="page-item">
+                    <span
+                      style={{
+                        color: "black",
+                        position: "relative",
+                        display: "blockrelative",
+                        border: "1px solid #dee2e6relative",
+                        padding: 5,
+                        textDecoration: "none",
+                        backgroundColor: "#fff",
+                        borderTopRightRadius: "0.25rem",
+                        borderBottomRightRadius: "0.25rem",
+                      }}
+                    >
+                      {pageNumber}
+                    </span>
+                  </li>
+                )}
+                {products.length === preloadData.PREVIEWS_PER_PAGE && (
+                  <li className="page-item">
+                    <div
+                      className="page-link clickable"
+                      aria-label="Next"
+                      onClick={(evt) => {
+                        evt.preventDefault();
+                        setPageNumber(pageNumber + 1);
+                      }}
+                    >
+                      <span className="sr-only">Next</span>
+                      <span aria-hidden="true" className="ms-1">
+                        &raquo;
+                      </span>
+                    </div>
+                  </li>
+                )}
+              </ul>
+            </nav>
+          </div>
+        </div>
       </div>
     </div>
   );

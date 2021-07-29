@@ -6,6 +6,7 @@ import { singleProductdataTransformer } from "./dataTransformer";
 import preloadData from "./preload";
 import ProductsPicker from "./picker";
 import { _chunk } from "./utils";
+
 const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
 
 var axios = require("axios");
@@ -92,7 +93,7 @@ async function openDialog(sdk: any, currentValue: any, config: any) {
     shouldCloseOnOverlayClick: true,
     shouldCloseOnEscapePress: true,
     parameters: config,
-    width: 1400,
+    width: 1600,
   });
 
   return Array.isArray(skus) ? skus : [];
