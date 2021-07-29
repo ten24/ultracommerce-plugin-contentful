@@ -24,7 +24,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedProdType, setSelectedProdType] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState([]);
-  const [isHovered, setHover] = useState(false);
 
   useEffect(() => {
     const getProductTypes = async () => {
@@ -109,6 +108,7 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   }, [selectedSKUs]);
 
   const getURL = () => {
+    // if I send key with empty value it doesn't return any data. So I have splitted like below
     if (selectedProdType.length === 0 && selectedCategory.length === 0) {
       return `${apiEndpoint}api/public/product/?p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}`;
     } else if (selectedProdType && selectedCategory.length === 0) {
@@ -166,54 +166,17 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   };
   return (
     <div
+      className="w-100 ms-2 mt-3"
       style={{
         height: 800,
-        width: 1575,
-        margin: "10px 0px 0px 10px",
       }}
     >
-      <div
-        style={{
-          justifyContent: "center",
-          width: "50%",
-          marginBottom: "36px",
-          marginLeft: "30%",
-        }}
-      >
-        <Slider {...settings}>
-          {selectedProducts.length &&
-            selectedProducts.map((val) => {
-              return (
-                <div
-                  onMouseOver={() => setHover(true)}
-                  onMouseLeave={() => setHover(false)}
-                  key={val.sku_skuID}
-                >
-                  <img src={val.image} alt="Product1" height={50} />
-                  {isHovered && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "23px",
-                      }}
-                      onClick={() => selectProduct(val.sku_skuID)}
-                    >
-                      <Icon color="muted" icon="Close" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-        </Slider>
-      </div>
       <div
         style={{
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
-          padding: 5,
-          paddingTop: 10,
-          width: "100%",
+          alignItems: "center",
         }}
       >
         <div>
@@ -229,21 +192,46 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
           />
           <span>Total results:{products.length}</span>
         </div>
-
+        <div
+          style={{
+            justifyContent: "center",
+            width: "60%",
+            marginBottom: "36px",
+          }}
+        >
+          <Slider {...settings}>
+            {selectedProducts.length &&
+              selectedProducts.map((val) => {
+                return (
+                  <div key={val.sku_skuID}>
+                    <div
+                      onClick={() => selectProduct(val.sku_skuID)}
+                      className="d-flex justify-content-center"
+                    >
+                      <Icon color="muted" icon="Close" />
+                    </div>
+                    <img
+                      src={val.image ? val.image : preloadData.placeHolderImage}
+                      alt="Product1"
+                      height={50}
+                    />
+                  </div>
+                );
+              })}
+          </Slider>
+        </div>
         <Button
           buttonType="primary"
           onClick={onClickSaveBtn}
           disabled={selectedSKUs.length === 0}
+          className="me-2"
         >
           {`Save ${selectedSKUs.length} Products`}
         </Button>
       </div>
       <div className="row mt-3">
         <div className="col-lg-3">
-          <div
-            className="bg-light"
-            style={{ paddingLeft: "inherit", paddingRight: "inherit" }}
-          >
+          <div className="bg-light ps-3">
             <div className="pt-3">
               <h5>Filter By</h5>
             </div>
@@ -260,7 +248,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
                         name="productType"
                         value={cat.categoryID}
                         onChange={(e) => selectCategory(e.target.value)}
-                        style={{ marginRight: "7px" }}
                       />
                       <label className="form-check-label">
                         {cat.categoryName}
@@ -282,7 +269,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
                           type="checkbox"
                           name="productType"
                           value={ptype.productTypeIDPath}
-                          style={{ marginRight: "7px" }}
                           onChange={(e) => selectProductType(e.target.value)}
                         />
                         <label className="form-check-label">
@@ -297,28 +283,31 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
           </div>
         </div>
 
-        <div className="col-lg-8" style={{ marginLeft: "35px" }}>
+        <div className="col-lg-8">
           <div className="row">
             {products.map((data) => {
               return (
                 <div className="col-lg-4 col-md-6 mb-4" key={data.productID}>
                   <div
-                    className={`card ${
+                    className={`card h-100 ${
                       selectedSKUs.includes(data.productID)
                         ? "border-primary border-2"
                         : "border-secondary"
                     }`}
-                    style={{ height: 450 }}
                     onClick={() => selectProduct(data.productID)}
                   >
                     <img
-                      src={`${preloadData.imageURL}${data.images[1]}`}
+                      src={
+                        data.images.length
+                          ? `${preloadData.imageURL}${data.images[1]}`
+                          : preloadData.placeHolderImage
+                      }
                       className="img-fluid"
                       alt="Product1"
                     />
                     <div className="card-body">
                       <h5>{data.productName}</h5>
-                      <div className="d-flex justify-content-between mt-3">
+                      <div className="d-flex justify-content-between mt-2">
                         <p className="text-secondary">
                           <s>{data.defaultSku_skuPrices_listPrice}</s>
                         </p>
@@ -354,18 +343,11 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
                   </li>
                 )}
                 {products.length > 0 && (
-                  <li className="page-item">
+                  <li className="page-item" style={{ display: "flex" }}>
                     <span
                       style={{
                         color: "black",
-                        position: "relative",
-                        display: "blockrelative",
-                        border: "1px solid #dee2e6relative",
                         padding: 5,
-                        textDecoration: "none",
-                        backgroundColor: "#fff",
-                        borderTopRightRadius: "0.25rem",
-                        borderBottomRightRadius: "0.25rem",
                       }}
                     >
                       {pageNumber}

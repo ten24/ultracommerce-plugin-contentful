@@ -35,25 +35,23 @@ const fetchProductPreviews = async function fetchProductPreviews(
 
   // we get get last updated products ids in skus
   // chunk used for split the data (if we got 50 sku's we need to split it by previous per page) for pagination.
-  const resultPromises = _chunk(skus, PREVIEWS_PER_PAGE).map(
-    async (skusSubset) => {
-      var config = {
-        method: "get",
-        url: `${apiEndpoint}/api/public/product/?f:productID:in=${skusSubset
-          .map((data: any) => data)
-          .join(",")}`,
-      };
+  const resultPromises = _chunk(skus, 10).map(async (skusSubset) => {
+    var config = {
+      method: "get",
+      url: `${apiEndpoint}/api/public/product/?f:productID:in=${skusSubset
+        .map((data: any) => data)
+        .join(",")}`,
+    };
 
-      let res = await axios(config)
-        .then(function (response: any) {
-          return response.data;
-        })
-        .catch(function (error: any) {
-          console.log(error);
-        });
-      return res;
-    }
-  );
+    let res = await axios(config)
+      .then(function (response: any) {
+        return response.data;
+      })
+      .catch(function (error: any) {
+        console.log(error);
+      });
+    return res;
+  });
 
   const results = await Promise.all(resultPromises);
 
