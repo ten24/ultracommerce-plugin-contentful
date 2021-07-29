@@ -42,7 +42,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
       setProductTypes(res.data.pageRecords);
     };
     const getCategories = async () => {
-      // console.log("SlatwalApiService", await SlatwalApiService.category.list());
       var config = {
         method: "get",
         url: `${apiEndpoint}/api/public/category/`,
@@ -82,7 +81,7 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
       }
     };
     fetchSKUs();
-  }, [pageNumber, selectedProdType, selectedCategory]);
+  }, [pageNumber, selectedProdType, selectedCategory, searchValue]);
 
   useEffect(() => {
     const updateSelectedProducts = async () => {
@@ -110,13 +109,13 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   const getURL = () => {
     // if I send key with empty value it doesn't return any data. So I have splitted like below
     if (selectedProdType.length === 0 && selectedCategory.length === 0) {
-      return `${apiEndpoint}api/public/product/?p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}`;
+      return `${apiEndpoint}api/public/product/?p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}`;
     } else if (selectedProdType && selectedCategory.length === 0) {
-      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}`;
+      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}`;
     } else if (selectedCategory && selectedProdType.length === 0) {
-      return `${apiEndpoint}api/public/product/?f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}`;
+      return `${apiEndpoint}api/public/product/?f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}`;
     } else {
-      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}`;
+      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}`;
     }
   };
 
@@ -188,7 +187,7 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
             testId="sku-search"
             width="medium"
             value={searchValue}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => setSearchValue(event.target.value)}
           />
           <span>Total results:{products.length}</span>
         </div>
