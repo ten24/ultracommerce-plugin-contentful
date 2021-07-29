@@ -4,7 +4,6 @@ import get from "lodash/get";
 import { Button, TextInput, Icon } from "@contentful/forma-36-react-components";
 import preloadData from "./preload";
 import Slider from "react-slick";
-// import "../src/assets/app.scss";
 const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
 var axios = require("axios");
 

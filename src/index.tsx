@@ -1,5 +1,5 @@
 import { render } from "react-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
+import "../src/assets/app.scss";
 import { setup } from "@contentful/ecommerce-app-base";
 import logo from "./assets/slatwall.svg";
 import { singleProductdataTransformer } from "./dataTransformer";
