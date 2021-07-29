@@ -7,7 +7,7 @@ import preloadData from "./preload";
 import ProductsPicker from "./picker";
 import { _chunk } from "./utils";
 
-const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
+// const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
 
 var axios = require("axios");
 
@@ -32,9 +32,6 @@ const fetchProductPreviews = async function fetchProductPreviews(
   }
 
   const { apiEndpoint } = config;
-  let SlatwalApiService = SlatwalSDK.init({
-    host: apiEndpoint,
-  });
 
   // we get get last updated products ids in skus
   // chunk used for split the data (if we got 50 sku's we need to split it by previous per page) for pagination.

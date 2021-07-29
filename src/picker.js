@@ -4,14 +4,14 @@ import get from "lodash/get";
 import { Button, TextInput, Icon } from "@contentful/forma-36-react-components";
 import preloadData from "./preload";
 import Slider from "react-slick";
-const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
+// const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
 var axios = require("axios");
 
 const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   const { apiEndpoint } = sdk.parameters.installation;
-  const SlatwalApiService = SlatwalSDK.init({
-    host: apiEndpoint,
-  });
+  // const SlatwalApiService = SlatwalSDK.init({
+  //   host: apiEndpoint,
+  // });
   const [products, setProducts] = useState([]);
   const [tempProducts, setTempProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -27,69 +27,86 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   const [isHovered, setHover] = useState(false);
 
   useEffect(() => {
+    const getProductTypes = async () => {
+      var config = {
+        method: "get",
+        url: `${apiEndpoint}/api/public/producttype/`,
+      };
+
+      let res = await axios(config)
+        .then(function (response) {
+          return response.data;
+        })
+        .catch(function (error) {
+          sdk.notifier.error("There was an error fetching the product types.");
+        });
+      setProductTypes(res.data.pageRecords);
+    };
+    const getCategories = async () => {
+      // console.log("SlatwalApiService", await SlatwalApiService.category.list());
+      var config = {
+        method: "get",
+        url: `${apiEndpoint}/api/public/category/`,
+      };
+
+      try {
+        let res = await axios(config);
+        setCategories(res.data.data.pageRecords);
+      } catch (error) {
+        sdk.notifier.error("There was an error fetching the categories.");
+      }
+    };
     getProductTypes();
     getCategories();
   }, []);
 
   useEffect(() => {
+    // to get all products to show in the dialogue modal
+    const fetchSKUs = async () => {
+      const validationError = validateParameters(sdk.parameters.installation);
+      if (validationError) {
+        throw new Error(validationError);
+      }
+      var config = {
+        method: "get",
+        url: getURL(),
+      };
+
+      let res = await axios(config);
+
+      try {
+        let filteredData = res.data.data;
+        setProducts(filteredData);
+        setTempProducts(filteredData);
+      } catch (error) {
+        console.log(error);
+      }
+    };
     fetchSKUs();
   }, [pageNumber, selectedProdType, selectedCategory]);
 
   useEffect(() => {
+    const updateSelectedProducts = async () => {
+      try {
+        const config = sdk.parameters.installation;
+        const selectedProductsUnsorted = await fetchProductPreviews(
+          selectedSKUs,
+          config
+        );
+        const selectedProducts = mapSort(
+          selectedProductsUnsorted,
+          selectedSKUs,
+          "sku"
+        );
+        setSelectedProducts(selectedProducts);
+      } catch (error) {
+        sdk.notifier.error(
+          "There was an error fetching the data for the selected products."
+        );
+      }
+    };
     updateSelectedProducts();
   }, [selectedSKUs]);
-
-  const getProductTypes = async () => {
-    var config = {
-      method: "get",
-      url: `${apiEndpoint}/api/public/producttype/`,
-    };
-
-    let res = await axios(config)
-      .then(function (response) {
-        return response.data;
-      })
-      .catch(function (error) {
-        sdk.notifier.error("There was an error fetching the product types.");
-      });
-    setProductTypes(res.data.pageRecords);
-  };
-  const getCategories = async () => {
-    // console.log("SlatwalApiService", await SlatwalApiService.category.list());
-    var config = {
-      method: "get",
-      url: `${apiEndpoint}/api/public/category/`,
-    };
-
-    let res = await axios(config)
-      .then(function (response) {
-        return response.data;
-      })
-      .catch(function (error) {
-        sdk.notifier.error("There was an error fetching the categories.");
-      });
-    setCategories(res.data.pageRecords);
-  };
-
-  const updateSelectedProducts = async () => {
-    try {
-      const config = sdk.parameters.installation;
-      const selectedProductsUnsorted = await fetchProductPreviews(
-        selectedSKUs,
-        config
-      );
-      const selectedProducts = mapSort(
-        selectedProductsUnsorted,
-        selectedSKUs,
-        "sku"
-      );
-      setSelectedProducts(selectedProducts);
-    } catch (error) {
-      sdk.notifier.error(
-        "There was an error fetching the data for the selected products."
-      );
-    }
-  };
 
   const getURL = () => {
     if (selectedProdType.length === 0 && selectedCategory.length === 0) {
@@ -101,29 +118,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
     } else {
       return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}`;
     }
-  };
-  // to get all products to show in the dialogue modal
-  const fetchSKUs = async () => {
-    const validationError = validateParameters(sdk.parameters.installation);
-    if (validationError) {
-      throw new Error(validationError);
-    }
-    var config = {
-      method: "get",
-      url: getURL(),
-    };
-
-    let res = await axios(config)
-      .then(function (response) {
-        return response.data;
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-
-    let filteredData = res.data;
-    setProducts(filteredData);
-    setTempProducts(filteredData);
   };
 
   const selectProduct = (selectedProd) => {
@@ -176,9 +170,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
         height: 800,
         width: 1575,
         margin: "10px 0px 0px 10px",
-        // display: "flex",
-        // flexDirection: "column",
-        // justifyContent: "center",
       }}
     >
       <div
