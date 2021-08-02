@@ -3,7 +3,6 @@ import "../src/assets/app.scss";
 import { setup } from "@contentful/ecommerce-app-base";
 import logo from "./assets/slatwall.svg";
 import { singleProductdataTransformer } from "./dataTransformer";
-import preloadData from "./preload";
 import ProductsPicker from "./picker";
 import { _chunk } from "./utils";
 
@@ -12,7 +11,6 @@ import { _chunk } from "./utils";
 var axios = require("axios");
 
 const DIALOG_ID = "root";
-const { PREVIEWS_PER_PAGE } = preloadData;
 
 // it validates the config values
 function validateParameters(parameters: any) {

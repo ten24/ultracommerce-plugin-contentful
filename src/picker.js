@@ -1,7 +1,19 @@
 import { useEffect, useState } from "react";
 import { mapSort } from "./utils";
 import get from "lodash/get";
-import { Button, TextInput, Icon } from "@contentful/forma-36-react-components";
+import {
+  Button,
+  TextInput,
+  Icon,
+  Card,
+  Typography,
+  Paragraph,
+  Heading,
+  Subheading,
+  CheckboxField,
+  Checkbox,
+  Asset,
+} from "@contentful/forma-36-react-components";
 import preloadData from "./preload";
 import Slider from "react-slick";
 // const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
@@ -13,17 +25,18 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   //   host: apiEndpoint,
   // });
   const [products, setProducts] = useState([]);
-  const [tempProducts, setTempProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectedSKUs, setSelectedSKUs] = useState(
     get(sdk, ["parameters", "invocation", "fieldValue"], [])
   );
   const [productTypes, setProductTypes] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedProdType, setSelectedProdType] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedBrand, setSelectedBrand] = useState([]);
 
   useEffect(() => {
     const getProductTypes = async () => {
@@ -54,8 +67,21 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
         sdk.notifier.error("There was an error fetching the categories.");
       }
     };
+    const getBrands = async () => {
+      var config = {
+        method: "get",
+        url: `${apiEndpoint}/api/public/brand/`,
+      };
+      try {
+        let res = await axios(config);
+        setBrands(res.data.data.pageRecords);
+      } catch (error) {
+        sdk.notifier.error("There was an error fetching the categories.");
+      }
+    };
     getProductTypes();
     getCategories();
+    getBrands();
   }, []);
 
   useEffect(() => {
@@ -75,13 +101,18 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
       try {
         let filteredData = res.data.data;
         setProducts(filteredData);
-        setTempProducts(filteredData);
       } catch (error) {
         console.log(error);
       }
     };
     fetchSKUs();
-  }, [pageNumber, selectedProdType, selectedCategory, searchValue]);
+  }, [
+    pageNumber,
+    selectedProdType,
+    selectedCategory,
+    searchValue,
+    selectedBrand,
+  ]);
 
   useEffect(() => {
     const updateSelectedProducts = async () => {
@@ -109,13 +140,13 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   const getURL = () => {
     // if I send key with empty value it doesn't return any data. So I have splitted like below
     if (selectedProdType.length === 0 && selectedCategory.length === 0) {
-      return `${apiEndpoint}api/public/product/?p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}`;
+      return `${apiEndpoint}api/public/product/?p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}&f:brand.brandID:like=${selectedBrand}`;
     } else if (selectedProdType && selectedCategory.length === 0) {
-      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}`;
+      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}&f:brand.brandID:like=${selectedBrand}`;
     } else if (selectedCategory && selectedProdType.length === 0) {
-      return `${apiEndpoint}api/public/product/?f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}`;
+      return `${apiEndpoint}api/public/product/?f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}&f:brand.brandID:like=${selectedBrand}`;
     } else {
-      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}`;
+      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}&f:brand.brandID:like=${selectedBrand}`;
     }
   };
 
@@ -128,15 +159,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   };
   const onClickSaveBtn = () => {
     sdk.close(selectedSKUs);
-  };
-  const setSearch = (e) => {
-    setSearchValue(e);
-    let filteredData =
-      tempProducts.length &&
-      tempProducts.filter((values) =>
-        values.productName.toLowerCase().includes(e.toLowerCase())
-      );
-    setProducts(filteredData);
   };
   const selectCategory = (params) => {
     let arr = [];
@@ -156,6 +178,15 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
     }
     setSelectedProdType(arr);
   };
+  const selectBrand = (params) => {
+    let arr = [];
+    if (selectedBrand.includes(params)) {
+      arr = selectedBrand.filter((data) => data !== params);
+    } else {
+      arr = [...selectedBrand, params];
+    }
+    setSelectedBrand(arr);
+  };
   var settings = {
     dots: true,
     infinite: true,
@@ -165,19 +196,12 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   };
   return (
     <div
-      className="w-100 ms-2 mt-3"
+      className="w-100 ms-2 mt-3 px-3"
       style={{
         height: 800,
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <div className="d-flex flex-row justify-content-between align-items-center mb-5">
         <div>
           <TextInput
             placeholder="Search for a product..."
@@ -191,13 +215,7 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
           />
           <span>Total results:{products.length}</span>
         </div>
-        <div
-          style={{
-            justifyContent: "center",
-            width: "60%",
-            marginBottom: "36px",
-          }}
-        >
+        <div className="justify-content-center width_60">
           <Slider {...settings}>
             {selectedProducts.length &&
               selectedProducts.map((val) => {
@@ -209,10 +227,9 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
                     >
                       <Icon color="muted" icon="Close" />
                     </div>
-                    <img
+                    <Asset
                       src={val.image ? val.image : preloadData.placeHolderImage}
-                      alt="Product1"
-                      height={50}
+                      type="image"
                     />
                   </div>
                 );
@@ -229,52 +246,57 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
         </Button>
       </div>
       <div className="row mt-3">
-        <div className="col-lg-3">
-          <div className="bg-light ps-3">
+        <div className="col-3">
+          <div className="ps-3 box-shadow-positive">
             <div className="pt-3">
-              <h5>Filter By</h5>
+              <Heading>Filter By</Heading>
             </div>
             <hr />
-            <h6>Categories</h6>
+            <Subheading>Categories</Subheading>
             {categories.length > 0 &&
               categories.map((cat) => {
                 return (
-                  <div style={{ padding: "3px" }} key={cat.categoryID}>
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        name="productType"
-                        value={cat.categoryID}
-                        onChange={(e) => selectCategory(e.target.value)}
-                      />
-                      <label className="form-check-label">
-                        {cat.categoryName}
-                      </label>
-                      <br />
-                    </div>
+                  <div className="form-check p-1" key={cat.categoryID}>
+                    <Checkbox
+                      name="Category"
+                      id={cat.categoryID}
+                      value={cat.categoryID}
+                      onChange={(e) => selectCategory(e.target.value)}
+                    />
+                    <label className="ps-2">{cat.categoryName}</label>
                   </div>
                 );
               })}
             <div className="pt-3">
-              <h6>Product Types</h6>
+              <Subheading>Product Types</Subheading>
               {productTypes.length > 0 &&
                 productTypes.map((ptype) => {
                   return (
-                    <div style={{ padding: "3px" }} key={ptype.productTypeID}>
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          name="productType"
-                          value={ptype.productTypeIDPath}
-                          onChange={(e) => selectProductType(e.target.value)}
-                        />
-                        <label className="form-check-label">
-                          {ptype.productTypeName}
-                        </label>
-                        <br />
-                      </div>
+                    <div className="form-check p-1" key={ptype.productTypeID}>
+                      <Checkbox
+                        name="Product Type"
+                        id={ptype.productTypeIDPath}
+                        value={ptype.productTypeIDPath}
+                        onChange={(e) => selectProductType(e.target.value)}
+                      />
+                      <label className="ps-2">{ptype.productTypeName}</label>
+                    </div>
+                  );
+                })}
+            </div>
+            <div className="pt-3">
+              <Subheading>Brands</Subheading>
+              {brands.length > 0 &&
+                brands.map((brand) => {
+                  return (
+                    <div className="form-check p-1" key={brand.productTypeID}>
+                      <Checkbox
+                        name="Product Type"
+                        id={brand.brandID}
+                        value={brand.brandID}
+                        onChange={(e) => selectBrand(e.target.value)}
+                      />
+                      <label className="ps-2">{brand.brandName}</label>
                     </div>
                   );
                 })}
@@ -282,38 +304,41 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
           </div>
         </div>
 
-        <div className="col-lg-8">
+        <div className="col-9">
           <div className="row">
             {products.map((data) => {
               return (
-                <div className="col-lg-4 col-md-6 mb-4" key={data.productID}>
-                  <div
-                    className={`card h-100 ${
-                      selectedSKUs.includes(data.productID)
-                        ? "border-primary border-2"
-                        : "border-secondary"
-                    }`}
+                <div className="col-3 mb-4" key={data.productID}>
+                  <Card
+                    selected={selectedSKUs.includes(data.productID)}
+                    title={data.productName}
+                    className="h-100 bg-white"
                     onClick={() => selectProduct(data.productID)}
                   >
-                    <img
+                    <Asset
                       src={
                         data.images.length
                           ? `${preloadData.imageURL}${data.images[1]}`
                           : preloadData.placeHolderImage
                       }
-                      className="img-fluid"
-                      alt="Product1"
+                      type="image"
                     />
-                    <div className="card-body">
-                      <h5>{data.productName}</h5>
+                    <Typography>
+                      <Heading>{data.productName}</Heading>
                       <div className="d-flex justify-content-between mt-2">
                         <p className="text-secondary">
-                          <s>{data.defaultSku_skuPrices_listPrice}</s>
+                          {data.defaultSku_skuPrices_listPrice !== " " && (
+                            <s>${data.defaultSku_skuPrices_listPrice}</s>
+                          )}
                         </p>
-                        <p>{data.defaultSku_skuPrices_price}</p>
+                        {data.defaultSku_skuPrices_price !== " " && (
+                          <Paragraph>
+                            ${data.defaultSku_skuPrices_price}
+                          </Paragraph>
+                        )}
                       </div>
-                    </div>
-                  </div>
+                    </Typography>
+                  </Card>
                 </div>
               );
             })}
