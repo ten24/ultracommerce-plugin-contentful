@@ -10,20 +10,18 @@ import {
   Paragraph,
   Heading,
   Subheading,
-  CheckboxField,
   Checkbox,
   Asset,
 } from "@contentful/forma-36-react-components";
 import preloadData from "./preload";
 import Slider from "react-slick";
-// const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
-var axios = require("axios");
+const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
 
 const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   const { apiEndpoint } = sdk.parameters.installation;
-  // const SlatwalApiService = SlatwalSDK.init({
-  //   host: apiEndpoint,
-  // });
+  const SlatwalApiService = SlatwalSDK.init({
+    host: apiEndpoint,
+  });
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectedSKUs, setSelectedSKUs] = useState(
@@ -39,50 +37,50 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   const [selectedBrand, setSelectedBrand] = useState([]);
 
   useEffect(() => {
-    const getProductTypes = async () => {
-      var config = {
-        method: "get",
-        url: `${apiEndpoint}/api/public/producttype/`,
-      };
-
-      let res = await axios(config)
-        .then(function (response) {
-          return response.data;
-        })
-        .catch(function (error) {
-          sdk.notifier.error("There was an error fetching the product types.");
-        });
-      setProductTypes(res.data.pageRecords);
-    };
-    const getCategories = async () => {
-      var config = {
-        method: "get",
-        url: `${apiEndpoint}/api/public/category/`,
-      };
-
-      try {
-        let res = await axios(config);
-        setCategories(res.data.data.pageRecords);
-      } catch (error) {
-        sdk.notifier.error("There was an error fetching the categories.");
-      }
-    };
-    const getBrands = async () => {
-      var config = {
-        method: "get",
-        url: `${apiEndpoint}/api/public/brand/`,
-      };
-      try {
-        let res = await axios(config);
-        setBrands(res.data.data.pageRecords);
-      } catch (error) {
-        sdk.notifier.error("There was an error fetching the categories.");
-      }
-    };
     getProductTypes();
     getCategories();
     getBrands();
   }, []);
+
+  const getProductTypes = async () => {
+    const payload = {
+      entityName: "producttype",
+      includeAttributesMetadata: true,
+    };
+    let productTypes = await getAPI(payload, SlatwalApiService);
+    setProductTypes(productTypes);
+  };
+  const getCategories = async () => {
+    const payload = {
+      entityName: "category",
+      includeAttributesMetadata: true,
+    };
+    let categoryData = await getAPI(payload, SlatwalApiService);
+    setCategories(categoryData);
+  };
+
+  const getBrands = async () => {
+    const payload = {
+      entityName: "brand",
+      includeAttributesMetadata: true,
+    };
+    let brandData = await getAPI(payload, SlatwalApiService);
+    setBrands(brandData);
+  };
+
+  const getAPI = (payload) => {
+    return SlatwalApiService.general.getEntity(payload).then((response) => {
+      if (
+        response.isSuccess() &&
+        response.success().data &&
+        response.success().data.pageRecords
+      ) {
+        return response.success().data.pageRecords;
+      } else {
+        sdk.notifier.error("There was an error fetching the data.");
+      }
+    });
+  };
 
   useEffect(() => {
     // to get all products to show in the dialogue modal
@@ -91,19 +89,27 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
       if (validationError) {
         throw new Error(validationError);
       }
-      var config = {
-        method: "get",
-        url: getURL(),
+      const payload = {
+        entityName: "product",
+        includeAttributesMetadata: true,
+        "p:current": pageNumber,
+        "p:show": preloadData.PREVIEWS_PER_PAGE,
+        "f:productName:like": searchValue,
+        // "f:brand.brandID:like": selectedBrand.length
+        //   ? selectedBrand.map((data) => data).join(",")
+        //   : "",
+        // "f:categories.categoryID:eq": selectedCategory.length
+        //   ? selectedCategory.map((data) => data).join(",")
+        //   : "",
+        // "f:productType.productTypeIDPath:like": selectedProdType.length
+        //   ? selectedProdType.map((data) => data).join(",")
+        //   : "",
       };
-
-      let res = await axios(config);
-
-      try {
-        let filteredData = res.data.data;
-        setProducts(filteredData);
-      } catch (error) {
-        console.log(error);
-      }
+      SlatwalApiService.general.getEntity(payload).then((response) => {
+        if (response.isSuccess() && response.success().data) {
+          setProducts(response.success().data);
+        }
+      });
     };
     fetchSKUs();
   }, [
@@ -136,19 +142,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
     };
     updateSelectedProducts();
   }, [selectedSKUs]);
-
-  const getURL = () => {
-    // if I send key with empty value it doesn't return any data. So I have splitted like below
-    if (selectedProdType.length === 0 && selectedCategory.length === 0) {
-      return `${apiEndpoint}api/public/product/?p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}&f:brand.brandID:like=${selectedBrand}`;
-    } else if (selectedProdType && selectedCategory.length === 0) {
-      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}&f:brand.brandID:like=${selectedBrand}`;
-    } else if (selectedCategory && selectedProdType.length === 0) {
-      return `${apiEndpoint}api/public/product/?f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}&f:brand.brandID:like=${selectedBrand}`;
-    } else {
-      return `${apiEndpoint}api/public/product/?f:productType.productTypeIDPath:like=${selectedProdType}&f:categories.categoryID:eq=${selectedCategory}&p:current=${pageNumber}&p:show=${preloadData.PREVIEWS_PER_PAGE}&f:productName:like=${searchValue}&f:brand.brandID:like=${selectedBrand}`;
-    }
-  };
 
   const selectProduct = (selectedProd) => {
     if (selectedSKUs.includes(selectedProd)) {

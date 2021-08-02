@@ -6,9 +6,7 @@ import { singleProductdataTransformer } from "./dataTransformer";
 import ProductsPicker from "./picker";
 import { _chunk } from "./utils";
 
-// const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
-
-var axios = require("axios");
+const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
 
 const DIALOG_ID = "root";
 
@@ -31,29 +29,33 @@ const fetchProductPreviews = async function fetchProductPreviews(
 
   const { apiEndpoint } = config;
 
+  const SlatwalApiService = SlatwalSDK.init({
+    host: apiEndpoint,
+  });
+
   // we get get last updated products ids in skus
   // chunk used for split the data (if we got 50 sku's we need to split it by previous per page) for pagination.
   const resultPromises = _chunk(skus, 10).map(async (skusSubset) => {
-    var config = {
-      method: "get",
-      url: `${apiEndpoint}/api/public/product/?f:productID:in=${skusSubset
-        .map((data: any) => data)
-        .join(",")}`,
+    const payload = {
+      entityName: "product",
+      includeAttributesMetadata: true,
+      "f:productID:in": skusSubset.map((data: any) => data).join(","),
     };
-
-    let res = await axios(config)
-      .then(function (response: any) {
-        return response.data;
-      })
-      .catch(function (error: any) {
-        console.log(error);
+    let res = await SlatwalApiService.general
+      .getEntity(payload)
+      .then((response: any) => {
+        if (response.isSuccess() && response.success().data) {
+          return response.success().data;
+        } else {
+          console.log("error");
+        }
       });
     return res;
   });
 
   const results = await Promise.all(resultPromises);
 
-  const foundProducts = results.flatMap(({ data }) => {
+  const foundProducts = results.flatMap((data) => {
     return data.map(singleProductdataTransformer());
   });
   // if any products are missed from API we need to the products with missed label
