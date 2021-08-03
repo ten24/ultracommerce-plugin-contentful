@@ -44,16 +44,25 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
 
   const getProductTypes = async () => {
     let productTypes = await getAPI("producttype");
-    setProductTypes(productTypes);
+    let sortedProductTypes = productTypes.sort((a, b) =>
+      a.productTypeName.localeCompare(b.productTypeName)
+    );
+    setProductTypes(sortedProductTypes);
   };
   const getCategories = async () => {
     let categoryData = await getAPI("category");
-    setCategories(categoryData);
+    let sortedCategory = categoryData.sort((a, b) =>
+      a.categoryName.localeCompare(b.categoryName)
+    );
+    setCategories(sortedCategory);
   };
 
   const getBrands = async () => {
     let brandData = await getAPI("brand");
-    setBrands(brandData);
+    let sortedBrands = brandData.sort((a, b) =>
+      a.brandName.localeCompare(b.brandName)
+    );
+    setBrands(sortedBrands);
   };
 
   const getAPI = (entity) => {
@@ -90,7 +99,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
           .map((data) => data)
           .join(","),
         "f:brand.brandID:like": selectedBrand.map((data) => data).join(","),
-        "p:current": 1,
       };
     } else if (selectedCategory && selectedProdType.length === 0) {
       payload = {
@@ -99,7 +107,6 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
           .map((data) => data)
           .join(","),
         "f:brand.brandID:like": selectedBrand.map((data) => data).join(","),
-        "p:current": 1,
       };
     } else {
       payload = {
@@ -235,7 +242,7 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
             value={searchValue}
             onChange={(event) => setSearchValue(event.target.value)}
           />
-          <span>Total results:{products.length}</span>
+          <div className="pt-2 ps-1">{`Total results : ${products.length}`}</div>
         </div>
         <div className="justify-content-center width_60">
           <Slider {...settings}>
@@ -252,7 +259,7 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
                     <Asset
                       src={val.image ? val.image : preloadData.placeHolderImage}
                       type="image"
-                      style={{ height: "100px" }}
+                      style={{ height: "50px" }}
                     />
                   </div>
                 );
@@ -263,15 +270,14 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
           buttonType="primary"
           onClick={onClickSaveBtn}
           disabled={selectedSKUs.length === 0}
-          className="me-2"
         >
           {`Save ${selectedSKUs.length} Products`}
         </Button>
       </div>
       <div className="row mt-3">
         <div className="col-3">
-          <div className="ps-3 box-shadow-positive">
-            <div className="pt-3">
+          <div className="box-shadow-positive">
+            <div>
               <Heading>Filter By</Heading>
             </div>
             <hr />
