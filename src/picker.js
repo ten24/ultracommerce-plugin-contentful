@@ -43,32 +43,24 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
   }, []);
 
   const getProductTypes = async () => {
-    const payload = {
-      entityName: "producttype",
-      includeAttributesMetadata: true,
-    };
-    let productTypes = await getAPI(payload, SlatwalApiService);
+    let productTypes = await getAPI("producttype");
     setProductTypes(productTypes);
   };
   const getCategories = async () => {
-    const payload = {
-      entityName: "category",
-      includeAttributesMetadata: true,
-    };
-    let categoryData = await getAPI(payload, SlatwalApiService);
+    let categoryData = await getAPI("category");
     setCategories(categoryData);
   };
 
   const getBrands = async () => {
-    const payload = {
-      entityName: "brand",
-      includeAttributesMetadata: true,
-    };
-    let brandData = await getAPI(payload, SlatwalApiService);
+    let brandData = await getAPI("brand");
     setBrands(brandData);
   };
 
-  const getAPI = (payload) => {
+  const getAPI = (entity) => {
+    let payload = {
+      entityName: entity,
+      includeAttributesMetadata: true,
+    };
     return SlatwalApiService.general.getEntity(payload).then((response) => {
       if (
         response.isSuccess() &&
@@ -82,6 +74,62 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
     });
   };
 
+  const getURL = () => {
+    // if I send key with empty value it doesn't return any data. So I have splitted like below
+    let payload = {
+      entityName: "product",
+      includeAttributesMetadata: true,
+      "p:current": pageNumber,
+      "p:show": preloadData.PREVIEWS_PER_PAGE,
+      "f:productName:like": searchValue,
+    };
+    if (selectedProdType && selectedCategory.length === 0) {
+      payload = {
+        ...payload,
+        "f:productType.productTypeIDPath:like": selectedProdType
+          .map((data) => data)
+          .join(","),
+        "f:brand.brandID:like": selectedBrand.map((data) => data).join(","),
+        "p:current": 1,
+      };
+    } else if (selectedCategory && selectedProdType.length === 0) {
+      payload = {
+        ...payload,
+        "f:categories.categoryID:eq": selectedCategory
+          .map((data) => data)
+          .join(","),
+        "f:brand.brandID:like": selectedBrand.map((data) => data).join(","),
+        "p:current": 1,
+      };
+    } else {
+      payload = {
+        ...payload,
+        "f:productType.productTypeIDPath:like": selectedProdType
+          .map((data) => data)
+          .join(","),
+        "f:categories.categoryID:eq": selectedCategory
+          .map((data) => data)
+          .join(","),
+        "f:brand.brandID:like": selectedBrand.map((data) => data).join(","),
+      };
+    }
+
+    return SlatwalApiService.general
+      .getEntity(payload)
+      .then((response) => {
+        if (response.isSuccess() && response.success().data) {
+          return response.success().data;
+        } else {
+          console.log("error");
+        }
+      })
+      .catch((e) =>
+        sdk.notifier.error(
+          "There was an error fetching the data for the selected products."
+        )
+      );
+  };
+
   useEffect(() => {
     // to get all products to show in the dialogue modal
     const fetchSKUs = async () => {
@@ -89,27 +137,8 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
       if (validationError) {
         throw new Error(validationError);
       }
-      const payload = {
-        entityName: "product",
-        includeAttributesMetadata: true,
-        "p:current": pageNumber,
-        "p:show": preloadData.PREVIEWS_PER_PAGE,
-        "f:productName:like": searchValue,
-        // "f:brand.brandID:like": selectedBrand.length
-        //   ? selectedBrand.map((data) => data).join(",")
-        //   : "",
-        // "f:categories.categoryID:eq": selectedCategory.length
-        //   ? selectedCategory.map((data) => data).join(",")
-        //   : "",
-        // "f:productType.productTypeIDPath:like": selectedProdType.length
-        //   ? selectedProdType.map((data) => data).join(",")
-        //   : "",
-      };
-      SlatwalApiService.general.getEntity(payload).then((response) => {
-        if (response.isSuccess() && response.success().data) {
-          setProducts(response.success().data);
-        }
-      });
+      let productsData = await getURL();
+      setProducts(productsData);
     };
     fetchSKUs();
   }, [
@@ -223,6 +252,7 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
                     <Asset
                       src={val.image ? val.image : preloadData.placeHolderImage}
                       type="image"
+                      style={{ height: "100px" }}
                     />
                   </div>
                 );
