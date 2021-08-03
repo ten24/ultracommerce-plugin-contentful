@@ -1,23 +1,14 @@
-import { setup, renderSkuPicker } from "@contentful/ecommerce-app-base";
+import { render } from "react-dom";
+import "../src/assets/app.scss";
+import { setup } from "@contentful/ecommerce-app-base";
 import logo from "./assets/slatwall.svg";
-import {
-  singleProductdataTransformer,
-  multipleProductdataTransformers,
-} from "./dataTransformer";
-import preloadData from "./preload";
+import { singleProductdataTransformer } from "./dataTransformer";
+import ProductsPicker from "./picker";
+import { _chunk } from "./utils";
+
 const SlatwalSDK = require("@slatwall/slatwall-sdk/dist/client/index");
 
 const DIALOG_ID = "root";
-const { PREVIEWS_PER_PAGE } = preloadData;
-
-function _chunk(array: any, size = 1) {
-  let arrayChunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    let arrayChunk = array.slice(i, i + size);
-    arrayChunks.push(arrayChunk);
-  }
-  return arrayChunks;
-}
 
 // it validates the config values
 function validateParameters(parameters: any) {
@@ -25,34 +16,6 @@ function validateParameters(parameters: any) {
     return "Provide the slatwall API endpoint.";
   }
   return null;
-}
-
-// to get all products to show in the dialogue modal
-async function fetchSKUs(
-  installationParams: any,
-  search: any,
-  pagination: any
-) {
-  const validationError = validateParameters(installationParams);
-  if (validationError) {
-    throw new Error(validationError);
-  }
-  const { apiEndpoint } = installationParams;
-
-  let SlatwalApiService = SlatwalSDK.init({
-    host: apiEndpoint,
-  });
-  let payload = {
-    currentPage: pagination.offset / PREVIEWS_PER_PAGE + 1,
-    keyword: search,
-    pageSize: PREVIEWS_PER_PAGE,
-  };
-  const resp = await SlatwalApiService.products
-    .search(payload)
-    .then((response: any) => {
-      return response;
-    });
-  return resp.success();
 }
 
 // to preview the last updated products get it from API
@@ -65,35 +28,35 @@ const fetchProductPreviews = async function fetchProductPreviews(
   }
 
   const { apiEndpoint } = config;
-  let SlatwalApiService = SlatwalSDK.init({
+
+  const SlatwalApiService = SlatwalSDK.init({
     host: apiEndpoint,
   });
 
   // we get get last updated products ids in skus
   // chunk used for split the data (if we got 50 sku's we need to split it by previous per page) for pagination.
-  const resultPromises = _chunk(skus, PREVIEWS_PER_PAGE).map(
-    async (skusSubset) => {
-      let params = {
-        "f:publishedFlag": 1,
-        "f:productCode:in": skusSubset.map((data: any) => data).join(","),
-        entityName: "Product",
-        includeAttributesMetadata: true,
-        pageSize: PREVIEWS_PER_PAGE,
-      };
-      const resp = await SlatwalApiService.general
-        .getEntity(params)
-        .then((response: any) => {
-          return response;
-        });
-
-      return resp.success();
-    }
-  );
+  const resultPromises = _chunk(skus, 10).map(async (skusSubset) => {
+    const payload = {
+      entityName: "product",
+      includeAttributesMetadata: true,
+      "f:productID:in": skusSubset.map((data: any) => data).join(","),
+    };
+    let res = await SlatwalApiService.general
+      .getEntity(payload)
+      .then((response: any) => {
+        if (response.isSuccess() && response.success().data) {
+          return response.success().data;
+        } else {
+          console.log("error");
+        }
+      });
+    return res;
+  });
 
   const results = await Promise.all(resultPromises);
 
-  const foundProducts = results.flatMap(({ data }) => {
-    return data.map(multipleProductdataTransformers());
+  const foundProducts = results.flatMap((data) => {
+    return data.map(singleProductdataTransformer());
   });
   // if any products are missed from API we need to the products with missed label
   const missingProducts = skus
@@ -105,32 +68,15 @@ const fetchProductPreviews = async function fetchProductPreviews(
 };
 
 async function renderDialog(sdk: any) {
-  const container = document.createElement("div");
-  container.style.display = "flex";
-  container.style.flexDirection = "column";
-  // picker modal data
-  renderSkuPicker(DIALOG_ID, {
-    sdk,
-    fetchProductPreviews, // to initialize the selected products (shortant property)
-    fetchProducts: async (search, pagination) => {
-      const result = await fetchSKUs(
-        sdk.parameters.installation,
-        search,
-        pagination
-      );
-
-      return {
-        pagination: {
-          count: PREVIEWS_PER_PAGE,
-          limit: PREVIEWS_PER_PAGE,
-          total: 50, // as of now we are not getting total products in API so given static total.
-          offset: 1,
-        },
-        products: result.data.products.map(singleProductdataTransformer()),
-      };
-    },
-  });
-
+  const root = document.getElementById(DIALOG_ID);
+  render(
+    <ProductsPicker
+      validateParameters={validateParameters}
+      sdk={sdk}
+      fetchProductPreviews={fetchProductPreviews}
+    />,
+    root
+  );
   sdk.window.startAutoResizer();
 }
 // to open the dialog modal
@@ -142,7 +88,7 @@ async function openDialog(sdk: any, currentValue: any, config: any) {
     shouldCloseOnOverlayClick: true,
     shouldCloseOnEscapePress: true,
     parameters: config,
-    width: 1400,
+    width: 1600,
   });
 
   return Array.isArray(skus) ? skus : [];
