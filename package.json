@@ -2,6 +2,7 @@
   "name": "slatwall-plugin-contentful-private",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@contentful/ecommerce-app-base": "^2.3.0",
     "@contentful/forma-36-react-components": "^3.94.1",
@@ -12,11 +13,16 @@
     "react-slick": "^0.28.1",
     "web-vitals": "^1.1.2"
   },
+  "devDependencies": {
+    "@contentful/app-scripts": "^0.12.9"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "upload": "contentful-app-scripts upload --bundle-dir ./build",
+    "upload-ci": "export $(cat .env.local | xargs) && contentful-app-scripts upload --ci --bundle-dir ./build  --organization-id $CONTENTFUL_ORG_ID --definition-id $CONTENTFUL_APP_DEF_ID --token $CONTENTFUL_ACCESS_TOKEN"
   },
   "eslintConfig": {
     "extends": [

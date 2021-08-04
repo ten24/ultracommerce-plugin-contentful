@@ -3,7 +3,7 @@ import { setup } from '@contentful/ecommerce-app-base'
 import * as SlatwalSDK from '@slatwall/slatwall-sdk'
 import logo from './assets/slatwall.svg'
 import { singleProductdataTransformer } from './dataTransformer'
-import ProductsPicker from './components/picker'
+import { ProductsPicker } from './components/ProductsPicker'
 import { _chunk } from './utils'
 
 const DIALOG_ID = 'root'
