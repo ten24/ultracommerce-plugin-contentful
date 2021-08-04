@@ -17,7 +17,7 @@ function validateParameters(parameters) {
 }
 
 // to preview the last updated products get it from API
-const fetchProductPreviews = async function fetchProductPreviews(skus, config) {
+const fetchProductPreviews = async (skus, config) => {
   if (!skus.length) {
     return []
   }
