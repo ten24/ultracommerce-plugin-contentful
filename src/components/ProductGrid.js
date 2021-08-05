@@ -15,8 +15,6 @@ const ProductGrid = ({ products, selectedProducts, setSelectedProducts, currentP
     <GridItem>
       <Grid columns={3} rowGap="spacingM" columnGap="spacingM">
         {products.map(data => {
-          console.log(data);
-
           return (
             <GridItem key={data.productID}>
               <Card
