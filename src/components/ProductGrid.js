@@ -15,6 +15,8 @@ const ProductGrid = ({ products, selectedProducts, setSelectedProducts, currentP
     <GridItem>
       <Grid columns={3} rowGap="spacingM" columnGap="spacingM">
         {products.map(data => {
+          console.log(data);
+
           return (
             <GridItem key={data.productID}>
               <Card
@@ -25,7 +27,9 @@ const ProductGrid = ({ products, selectedProducts, setSelectedProducts, currentP
                 }}
               >
                 <Asset src={data.images.length ? `${preloadData.imageURL}${data.images[1]}` : preloadData.placeHolderImage} type="image" />
-                <Typography>
+                <Typography className="f36-margin-top--s">
+                  <span className="f36-font-family--sans-serif f36-font-size--s">{data.productCode}</span><br></br>
+                  <span className="f36-font-family--sans-serif f36-font-size--s">{data.brand_brandName}</span>
                   <p>{data.productName}</p>
                   <div className="d-flex justify-content-between mt-2">
                     <p className="text-secondary">{data.defaultSku_skuPrices_listPrice !== ' ' && <s>${data.defaultSku_skuPrices_listPrice}</s>}</p>
