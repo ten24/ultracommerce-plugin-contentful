@@ -7,32 +7,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.head_ref }}
-      # Setup .npmrc file to publish to npm
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
           node-version: 16.x
           registry-url: 'https://registry.npmjs.org'
-      - uses: actions/cache@v2
-        id: cache
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
       - run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.SLATWALL_SHARED_PAT }}" >> .npmrc
         name: add auth token for package pull
-      - name: Install Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: npm install
       - run: |
           echo "CONTENTFUL_ORG_ID=${{ secrets.CONTENTFUL_ORG_ID }}" >> .env.local
           echo "CONTENTFUL_APP_DEF_ID=${{ secrets.CONTENTFUL_APP_DEF_ID }}" >> .env.local
           echo "CONTENTFUL_ACCESS_TOKEN=${{ secrets.CONTENTFUL_ACCESS_TOKEN }}" >> .env.local
         name: Add deployment Keys
       - run: |
+          npm install
           npm run build
           npm run upload-ci
         name: Build and Deploy
