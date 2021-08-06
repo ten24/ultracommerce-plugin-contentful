@@ -1,33 +1,34 @@
 {
-  "name": "slatwall-contentful",
+  "name": "slatwall-plugin-contentful-private",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
-    "@contentful/ecommerce-app-base": "^2.1.0",
-    "@slatwall/slatwall-sdk": "1.2.0",
-    "@types/jest": "^26.0.22",
-    "@types/lodash": "^4.14.171",
-    "@types/node": "^14.14.41",
-    "@types/react": "^17.0.3",
-    "@types/react-dom": "^17.0.3",
-    "bootstrap": "^5.0.2",
-    "cross-env": "^7.0.3",
-    "node-sass": "^6.0.1",
+    "@contentful/ecommerce-app-base": "^2.3.0",
+    "@contentful/forma-36-react-components": "^3.94.1",
+    "@slatwall/slatwall-sdk": "^1.2.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
     "react-slick": "^0.28.1",
-    "sass-loader": "^11.1.1",
-    "typescript": "^4.2.4"
+    "web-vitals": "^1.1.2"
+  },
+  "devDependencies": {
+    "@contentful/app-scripts": "^0.12.9"
   },
   "scripts": {
-    "start": "cross-env BROWSER=none react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "upload": "contentful-app-scripts upload --bundle-dir ./build",
+    "upload-ci": "export $(cat .env.local | xargs) && contentful-app-scripts upload --ci --bundle-dir ./build  --organization-id $CONTENTFUL_ORG_ID --definition-id $CONTENTFUL_APP_DEF_ID --token $CONTENTFUL_ACCESS_TOKEN"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
   },
   "browserslist": {
     "production": [
@@ -40,6 +41,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "homepage": "."
+  }
 }
