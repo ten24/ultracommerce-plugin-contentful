@@ -7,7 +7,7 @@ const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm }) 
   const [categories, setCategories] = useState([])
   const [brands, setBrands] = useState([])
 
-  const { apiEndpoint } = sdk.parameters.installation
+  const { apiEndpoint, siteCode } = sdk.parameters.installation
   const SlatwalApiService = SlatwalSDK.init({
     host: apiEndpoint,
   })
@@ -33,13 +33,17 @@ const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm }) 
       entityName: entity,
       includeAttributesMetadata: true,
     }
-    return SlatwalApiService.general.getEntity(payload).then(response => {
-      if (response.isSuccess() && response.success().data && response.success().data.pageRecords) {
-        return response.success().data.pageRecords
-      } else {
-        sdk.notifier.error('There was an error fetching the data.')
-      }
-    })
+    return SlatwalApiService.general
+      .getEntity(payload, {
+        'SWX-requestSiteCode': siteCode,
+      })
+      .then(response => {
+        if (response.isSuccess() && response.success().data && response.success().data.pageRecords) {
+          return response.success().data.pageRecords
+        } else {
+          sdk.notifier.error('There was an error fetching the data.')
+        }
+      })
   }
 
   useEffect(() => {

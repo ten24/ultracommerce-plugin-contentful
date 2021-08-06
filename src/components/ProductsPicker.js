@@ -7,14 +7,14 @@ import { ProductGrid } from './ProductGrid'
 import { SelectedProductsSidebar } from './SelectedProductsSidebar'
 import { useDebounce } from '../hooks/useDebounce'
 
-const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
+const ProductsPicker = ({ sdk }) => {
   const {
     invocation: { fieldValue },
-    installation: { apiEndpoint },
+    installation: { apiEndpoint, siteCode },
   } = sdk.parameters
   const [selectedProducts, setSelectedProducts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
+  // const [isSearching, setIsSearching] = useState(false)
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   const [currentPage, setCurrentPage] = useState(1)
@@ -39,13 +39,17 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
     if (filters.brands.length) payload['f:brand.brandID:in'] = filters.brands.join(',')
     if (debouncedSearchTerm) payload['f:productName:like'] = `%${debouncedSearchTerm}%`
 
-    SlatwalApiService.general.getEntity(payload).then(response => {
-      if (response.isSuccess() && response.success().data) {
-        setProducts(response.success().data)
-      } else {
-        sdk.notifier.error('There was an error fetching the data.')
-      }
-    })
+    SlatwalApiService.general
+      .getEntity(payload, {
+        'SWX-requestSiteCode': siteCode,
+      })
+      .then(response => {
+        if (response.isSuccess() && response.success().data) {
+          setProducts(response.success().data)
+        } else {
+          sdk.notifier.error('There was an error fetching the data.')
+        }
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, currentPage, debouncedSearchTerm])
 
@@ -56,13 +60,17 @@ const ProductsPicker = ({ validateParameters, sdk, fetchProductPreviews }) => {
       includeAttributesMetadata: true,
     }
 
-    SlatwalApiService.general.getEntity(payload).then(response => {
-      if (response.isSuccess() && response.success().data) {
-        setSelectedProducts(response.success().data)
-      } else {
-        sdk.notifier.error('There was an error fetching the data.')
-      }
-    })
+    SlatwalApiService.general
+      .getEntity(payload, {
+        'SWX-requestSiteCode': siteCode,
+      })
+      .then(response => {
+        if (response.isSuccess() && response.success().data) {
+          setSelectedProducts(response.success().data)
+        } else {
+          sdk.notifier.error('There was an error fetching the data.')
+        }
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
