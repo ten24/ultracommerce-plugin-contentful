@@ -1,11 +1,17 @@
-# Slatwall React Plugin
+# About the Slatwall Commerce app
 
-## For Local Development
+Slatwall Commerce for Contentful allows content editors to assign collections of products to Contentful content entries. All the products data is live and is pulled directly from their Slatwall Commerce accounts.
 
-create a .env.local and add the below lines while makse suse to set the appropriate values.This allow you to develop the app outside of contentful. Some functionality like save will not work.
+Product collections can be previewed, filtered and selected from across the entire Slatwall Commerce database or from selected sites. Merchandisers and marketing teams have access to create dynamic content elements featuring live product data across their storefronts.
 
-REACT_APP_SLATWALL_URL=
+# Features
 
-REACT_APP_SLATWALL_SITE_CODE=
+- Assign products to content
+- Search and browse products from Slatwall Commerce within Contentful
+- Filter products for selection by product type, brand and category
+- Preview selected products in Contentful
+- Get started quickly with the Slatwall Commerce for Contentful starter storefront
 
-REACT_APP_SLATWALL_LOCAL_DEVELOPMENT=true
+# Requirements
+
+You must have a Slatwall Commerce account for this app.
