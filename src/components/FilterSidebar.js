@@ -94,6 +94,7 @@ const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm, se
           setCurrentPage(1)
           setSearchTerm(e.target.value)
         }}
+        placeholder="Search Products"
         className="f36-margin-bottom--m"
       />
       <Heading className="f36-font-size--m">Filter By</Heading>
