@@ -5,7 +5,6 @@ import preloadData from '../preload'
 import { FilterSidebar } from './FilterSidebar'
 import { ProductGrid } from './ProductGrid'
 import { SelectedProductsSidebar } from './SelectedProductsSidebar'
-import { useDebounce } from '../hooks/useDebounce'
 
 const ProductsPicker = ({ sdk }) => {
   const {
@@ -14,8 +13,6 @@ const ProductsPicker = ({ sdk }) => {
   } = sdk.parameters
   const [selectedProducts, setSelectedProducts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
-  // const [isSearching, setIsSearching] = useState(false)
-  const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   const [currentPage, setCurrentPage] = useState(1)
   const [products, setProducts] = useState([])
@@ -27,6 +24,7 @@ const ProductsPicker = ({ sdk }) => {
     productTypes: [],
     brands: [],
   })
+
   useEffect(() => {
     const payload = {
       entityName: 'product',
@@ -37,46 +35,49 @@ const ProductsPicker = ({ sdk }) => {
     if (filters.categories.length) payload['f:categories.categoryID:in'] = filters.categories.join(',')
     if (filters.productTypes.length) payload['f:productType.productTypeID:in'] = filters.productTypes.join(',')
     if (filters.brands.length) payload['f:brand.brandID:in'] = filters.brands.join(',')
-    if (debouncedSearchTerm) payload['f:productName:like'] = `%${debouncedSearchTerm}%`
+    if (searchTerm) payload['f:productName:like'] = `%${searchTerm}%`
 
     SlatwalApiService.general
       .getEntity(payload, {
         'SWX-requestSiteCode': siteCode,
       })
       .then(response => {
-        if (response.isSuccess() && response.success().data) {
-          setProducts(response.success().data)
+        if (response.isSuccess() && response.success().data && response.success().data.pageRecords) {
+          const products = response.success().data.pageRecords.map(product => {
+            return { ...product, brandName: product.brand_brandName, brandUrlTitle: product.brand_urlTitle, imageFile: product.defaultSku_imageFile, skuCode: product.defaultSku_skuCode, product: product.defaultSku_imageFile, skuID: product.defaultSku_skuID }
+          })
+          setProducts(products)
         } else {
           sdk.notifier.error('There was an error fetching the data.')
         }
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, currentPage, debouncedSearchTerm])
-
+  }, [filters, currentPage, searchTerm])
   useEffect(() => {
-    const payload = {
-      entityName: 'product',
-      'f:productID:in': fieldValue.join(),
-      includeAttributesMetadata: true,
-    }
+    if (fieldValue && fieldValue.length) {
+      const payload = {
+        entityName: 'product',
+        'f:productID:in': fieldValue.join(),
+        includeAttributesMetadata: true,
+      }
 
-    SlatwalApiService.general
-      .getEntity(payload, {
-        'SWX-requestSiteCode': siteCode,
-      })
-      .then(response => {
-        if (response.isSuccess() && response.success().data) {
-          setSelectedProducts(response.success().data)
-        } else {
-          sdk.notifier.error('There was an error fetching the data.')
-        }
-      })
+      SlatwalApiService.general
+        .getEntity(payload, {
+          'SWX-requestSiteCode': siteCode,
+        })
+        .then(response => {
+          if (response.isSuccess() && response.success().data && response.success().data.pageRecords) {
+            setSelectedProducts(response.success().data.pageRecords)
+          } else {
+            sdk.notifier.error('There was an error fetching the data.')
+          }
+        })
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
   return (
     <Grid columns="1fr 4fr 1fr">
-      <FilterSidebar sdk={sdk} filters={filters} setFilters={setFilters} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <FilterSidebar sdk={sdk} filters={filters} setFilters={setFilters} searchTerm={searchTerm} setCurrentPage={setCurrentPage} setSearchTerm={setSearchTerm} />
       <ProductGrid products={products} currentPage={currentPage} setCurrentPage={setCurrentPage} selectedProducts={selectedProducts} setSelectedProducts={setSelectedProducts} />
       <SelectedProductsSidebar sdk={sdk} selectedProducts={selectedProducts} setSelectedProducts={setSelectedProducts} />
     </Grid>

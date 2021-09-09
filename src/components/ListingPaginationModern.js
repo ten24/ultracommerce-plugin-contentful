@@ -4,7 +4,7 @@ const ListingPaginationModern = ({ currentPage = 1, setPage, count = 0, pageMax 
   currentPage = parseInt(currentPage)
 
   return (
-    <nav className="d-flex justify-content-between pt-2" aria-label="Page navigation">
+    <nav className="d-flex justify-content-between" aria-label="Page navigation" style={{ marginTop: '1rem' }}>
       <Flex justifyContent="space-between" alignItems="center" marginBottom="spacingM">
         <Flex>
           {currentPage > 1 && (

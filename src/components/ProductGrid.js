@@ -14,24 +14,35 @@ const ProductGrid = ({ products, selectedProducts, setSelectedProducts, currentP
   return (
     <GridItem>
       <Grid columns={3} rowGap="spacingM" columnGap="spacingM">
-        {products.map(data => {
+        {products.map(product => {
           return (
-            <GridItem key={data.productID}>
+            <GridItem key={product.productID} style={{ display: 'flex' }}>
               <Card
-                selected={selectedProducts.filter(sp => data.productID === sp.productID).length ? true : false}
-                title={data.productName}
+                selected={selectedProducts.filter(sp => product.productID === sp.productID).length ? true : false}
+                title={product.productName}
                 onClick={() => {
-                  onSelectProduct(data)
+                  onSelectProduct(product)
                 }}
               >
-                <Asset src={data.images.length ? `${preloadData.imageURL}${data.images[1]}` : preloadData.placeHolderImage} type="image" />
+                <Asset src={product.images.length ? `${preloadData.imageURL}${product.images[1]}` : preloadData.placeHolderImage} type="image" />
                 <Typography className="f36-margin-top--s">
-                  <span className="f36-font-family--sans-serif f36-font-size--s">{data.productCode}</span><br></br>
-                  <span className="f36-font-family--sans-serif f36-font-size--s">{data.brand_brandName}</span>
-                  <p>{data.productName}</p>
-                  <div className="d-flex justify-content-between mt-2">
-                    <p className="text-secondary">{data.defaultSku_skuPrices_listPrice !== ' ' && <s>${data.defaultSku_skuPrices_listPrice}</s>}</p>
-                    {data.defaultSku_skuPrices_price !== ' ' && <Paragraph>${data.defaultSku_skuPrices_price}</Paragraph>}
+                  <span className="f36-font-family--sans-serif f36-font-size--m f36-color--text-mid">
+                    {product.brandName}
+                  </span>
+                  <h3 className="f36-font-family--sans-serif f36-font-size--lg f36-margin-bottom--xs" style={{ marginTop: '3px' }}>
+                    {product.productName}
+                  </h3>
+                  <span className="f36-font-family--sans-serif f36-font-size--s">
+                    {product.productCode}
+                  </span>
+                  
+                  <div className="f36-font-family--sans-serif">
+                    <span className="f36-font-size--m f36-color--text-mid f36-margin-bottom--xs f36-margin-top--m" style={{ display: 'block' }}>
+                      {product.listPrice !== ' ' && <s>${product.listPrice}</s>}
+                    </span>
+                    <span className="f36-font-size--l">
+                      {product.salePrice !== ' ' && <span>${product.salePrice}</span>}
+                    </span>
                   </div>
                 </Typography>
               </Card>

@@ -25,8 +25,8 @@ const fetchProductPreviews = async (skus = [], config) => {
       'SWX-requestSiteCode': siteCode,
     })
     .then(response => {
-      if (response.isSuccess() && response.success().data && response.success().data) {
-        return response.success().data
+      if (response.isSuccess() && response.success().data && response.success().data.pageRecords) {
+        return response.success().data.pageRecords
       }
       console.log('error')
       return []

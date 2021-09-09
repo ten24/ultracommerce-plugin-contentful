@@ -3,16 +3,16 @@ import preloadData from '../preload'
 
 const SelectedProductsSidebar = ({ sdk, selectedProducts, setSelectedProducts }) => {
   return (
-    <GridItem>
-      <Heading>Select products</Heading>
+    <GridItem style={{ maxWidth: '300px' }}>
+      <Heading className="f36-margin-bottom--xs">Selected Products</Heading>
       <EntityList>
         {selectedProducts.map(product => {
           return (
             <EntityListItem
               key={product.productID}
               thumbnailUrl={product.images.length ? `${preloadData.imageURL}${product.images[1]}` : preloadData.placeHolderImage}
-              title={product.productName}
-              description="Description"
+              title={product.productName} 
+              description={product.productCode}
               status=""
               dropdownListElements={
                 <DropdownList>
@@ -32,6 +32,7 @@ const SelectedProductsSidebar = ({ sdk, selectedProducts, setSelectedProducts })
       </EntityList>
       <Button
         buttonType="primary"
+        className="f36-margin-top--s"
         onClick={() => {
           sdk.close(selectedProducts.map(products => products.productID))
         }}
