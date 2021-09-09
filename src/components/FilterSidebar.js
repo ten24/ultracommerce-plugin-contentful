@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Grid, GridItem, TextInput, CheckboxField, Flex, Heading, Subheading } from '@contentful/forma-36-react-components'
 import * as SlatwalSDK from '@slatwall/slatwall-sdk'
 
-const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm }) => {
+const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm, setCurrentPage }) => {
   const [productTypes, setProductTypes] = useState([])
   const [categories, setCategories] = useState([])
   const [brands, setBrands] = useState([])
@@ -58,6 +58,7 @@ const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm }) 
     if (filters.categories.includes(category.categoryID)) {
       categories = categories.filter(categoryID => categoryID !== category.categoryID)
     }
+    setCurrentPage(1)
     setFilters({ ...filters, categories })
   }
   const setBrand = brand => {
@@ -65,6 +66,7 @@ const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm }) 
     if (filters.brands.includes(brand.brandID)) {
       brands = brands.filter(brandID => brandID !== brand.brandID)
     }
+    setCurrentPage(1)
     setFilters({ ...filters, brands })
   }
   const setProductType = productType => {
@@ -72,6 +74,7 @@ const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm }) 
     if (filters.productTypes.includes(productType.productTypeID)) {
       productTypes = productTypes.filter(productTypeID => productTypeID !== productType.productTypeID)
     }
+    setCurrentPage(1)
     setFilters({ ...filters, productTypes })
   }
 
@@ -81,12 +84,19 @@ const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm }) 
         name="example"
         type="text"
         value={searchTerm}
-        onChange={e => {
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            setCurrentPage(1)
+            setSearchTerm(e.target.value)
+          }
+        }}
+        onBlur={e => {
+          setCurrentPage(1)
           setSearchTerm(e.target.value)
         }}
         className="f36-margin-bottom--m"
       />
-      <Heading>Filter By</Heading>
+      <Heading className="f36-font-size--m">Filter By</Heading>
       <Grid rowGap="spacingXl">
         <GridItem>
           <Subheading>Categories</Subheading>
