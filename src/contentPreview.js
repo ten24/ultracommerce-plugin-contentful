@@ -31,11 +31,13 @@ const fetchProductPreviews = async (skus = [], config) => {
       console.log('error')
       return []
     })
-  const foundProducts = results.map(({ productName = '', images = [], productID = '' }) => {
+  const foundProducts = results.map(({ productName = '', images = [], productID = '', brand_brandName, productCode }) => {
     return {
       image: imageURL + (images.length ? images[1] : placeHolderImage),
       name: productName,
       sku: productID,
+      brand: brand_brandName,
+      productCode: productCode,
     }
   })
   const missingProducts = skus.filter(data => !foundProducts.map(product => product.sku).includes(data)).map(sku => ({ sku, isMissing: true, image: '', name: '', id: '' }))
