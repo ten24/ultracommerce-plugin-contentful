@@ -14,17 +14,17 @@ const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm, se
 
   const getProductTypes = async () => {
     let productTypes = await getAPI('producttype')
-    let sortedProductTypes = productTypes.sort((a, b) => a.productTypeName.localeCompare(b.productTypeName))
+    let sortedProductTypes = productTypes?.sort((a, b) => a.productTypeName.localeCompare(b.productTypeName))
     setProductTypes(sortedProductTypes)
   }
   const getCategories = async () => {
     let categoryData = await getAPI('category')
-    let sortedCategory = categoryData.sort((a, b) => a.categoryName.localeCompare(b.categoryName))
+    let sortedCategory = categoryData?.sort((a, b) => a.categoryName.localeCompare(b.categoryName))
     setCategories(sortedCategory)
   }
   const getBrands = async () => {
     let brandData = await getAPI('brand')
-    let sortedBrands = brandData.sort((a, b) => a.brandName.localeCompare(b.brandName))
+    let sortedBrands = brandData?.sort((a, b) => a.brandName.localeCompare(b.brandName))
     setBrands(sortedBrands)
   }
 
@@ -101,67 +101,64 @@ const FilterSidebar = ({ sdk, filters, setFilters, searchTerm, setSearchTerm, se
       <Grid rowGap="spacingXl">
         <GridItem>
           <Subheading>Categories</Subheading>
-          {categories.length > 0 &&
-            categories.map(category => {
-              return (
-                <Flex key={category.categoryID}>
-                  <CheckboxField
-                    key={category.categoryID}
-                    labelText={category.categoryName}
-                    name={category.categoryName}
-                    value={category.categoryID}
-                    id={category.categoryID}
-                    checked={filters.categories.includes(category.categoryID)}
-                    labelIsLight
-                    onClick={() => {
-                      setCategory(category)
-                    }}
-                  />
-                </Flex>
-              )
-            })}
+          {categories?.map(category => {
+            return (
+              <Flex key={category.categoryID}>
+                <CheckboxField
+                  key={category.categoryID}
+                  labelText={category.categoryName}
+                  name={category.categoryName}
+                  value={category.categoryID}
+                  id={category.categoryID}
+                  checked={filters.categories.includes(category.categoryID)}
+                  labelIsLight
+                  onClick={() => {
+                    setCategory(category)
+                  }}
+                />
+              </Flex>
+            )
+          })}
         </GridItem>
         <GridItem>
           <Subheading>Product Types</Subheading>
-          {productTypes.length > 0 &&
-            productTypes.map(productType => {
-              return (
-                <Flex key={productType.productTypeID}>
-                  <CheckboxField
-                    labelText={productType.productTypeName}
-                    name={productType.productTypeName}
-                    value={productType.productTypeID}
-                    id={productType.productTypeID}
-                    checked={filters.productTypes.includes(productType.productTypeID)}
-                    labelIsLight
-                    onClick={() => {
-                      setProductType(productType)
-                    }}
-                  />
-                </Flex>
-              )
-            })}
+          {productTypes?.map(productType => {
+            return (
+              <Flex key={productType.productTypeID}>
+                <CheckboxField
+                  labelText={productType.productTypeName}
+                  name={productType.productTypeName}
+                  value={productType.productTypeID}
+                  id={productType.productTypeID}
+                  checked={filters.productTypes.includes(productType.productTypeID)}
+                  labelIsLight
+                  onClick={() => {
+                    setProductType(productType)
+                  }}
+                />
+              </Flex>
+            )
+          })}
         </GridItem>
         <GridItem>
           <Subheading>Brands</Subheading>
-          {brands.length > 0 &&
-            brands.map(brand => {
-              return (
-                <Flex key={brand.brandID}>
-                  <CheckboxField
-                    labelText={brand.brandName}
-                    name={brand.brandName}
-                    value={brand.brandID}
-                    id={brand.brandID}
-                    checked={filters.brands.includes(brand.brandID)}
-                    labelIsLight
-                    onClick={() => {
-                      setBrand(brand)
-                    }}
-                  />
-                </Flex>
-              )
-            })}
+          {brands?.map(brand => {
+            return (
+              <Flex key={brand.brandID}>
+                <CheckboxField
+                  labelText={brand.brandName}
+                  name={brand.brandName}
+                  value={brand.brandID}
+                  id={brand.brandID}
+                  checked={filters.brands.includes(brand.brandID)}
+                  labelIsLight
+                  onClick={() => {
+                    setBrand(brand)
+                  }}
+                />
+              </Flex>
+            )
+          })}
         </GridItem>
       </Grid>
     </GridItem>
