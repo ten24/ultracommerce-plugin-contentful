@@ -25,7 +25,7 @@ const ProductGrid = ({ products, selectedProducts, setSelectedProducts, currentP
                 }}
                 style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
               >
-                <Asset src={product.images.length ? `${preloadData.imageURL}${product.images[1]}` : preloadData.placeHolderImage} type="image" />
+                <Asset src={product.images.length ? `${process.env.REACT_APP_SLATWALL_URL}${product.images[1]}` : preloadData.placeHolderImage} type="image" />
                 <div style={{ height: '100%' }}>
                   <Typography className="f36-margin-top--s" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', height: '100%' }}>
                     <span className="f36-font-family--sans-serif f36-font-size--m f36-color--text-mid">{product.brandName}</span>
