@@ -4,7 +4,7 @@ import * as SlatwalSDK from '@slatwall/slatwall-sdk'
 
 // to preview the last updated products get it from API
 const fetchProductPreviews = async (skus = [], config) => {
-  const { imageURL, placeHolderImage } = preloadData
+  const { placeHolderImage } = preloadData
   if (!skus.length) {
     return []
   }
@@ -33,7 +33,7 @@ const fetchProductPreviews = async (skus = [], config) => {
     })
   const foundProducts = results.map(({ productName = '', images = [], productID = '', brand_brandName, productCode }) => {
     return {
-      image: imageURL + (images.length ? images[1] : placeHolderImage),
+      image: process.env.REACT_APP_SLATWALL_URL + (images.length ? images[1] : placeHolderImage),
       name: productName,
       sku: productID,
       brand: brand_brandName,
