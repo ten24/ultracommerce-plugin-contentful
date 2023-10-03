@@ -6,10 +6,10 @@ import logo from './assets/icon.svg'
 
 const validateParameters = parameters => {
   if (parameters.apiEndpoint.length < 1) {
-    return 'Provide the slatwall API endpoint.'
+    return 'Provide the Ultra Commerce API endpoint.'
   }
   if (parameters.siteCode.length < 1) {
-    return 'Provide the slatwall Site Code.'
+    return 'Provide the Ultra Commerce Site Code.'
   }
   return null
 }
@@ -60,22 +60,22 @@ if (process.env.REACT_APP_SLATWALL_LOCAL_DEVELOPMENT === 'true') {
   setup({
     //Returns the text that is displayed on the button in the field location (makeCTA).
     makeCTA: () => 'Select products', // name of field button
-    name: 'Slatwall', // name of config screen
+    name: 'Ultra Commerce', // name of config screen
     logo, // logo of field button and config screen
     color: '#212F3F', // bg color of config screen
-    description: 'The Slatwall app allows editors to select products from their Slatwall account and reference them inside of Contentful entries.', // desc of config screen
+    description: 'The Ultra Commerce app allows editors to select products from their Ultra Commerce account and reference them inside of Contentful entries.', // desc of config screen
     parameterDefinitions: [
       {
         id: 'apiEndpoint',
         name: 'API Endpoint',
-        description: 'Slatwall API endpoint',
+        description: 'Ultra Commerce API endpoint',
         type: 'Symbol',
         required: true,
       },
       {
         id: 'siteCode',
         name: 'Site Code',
-        description: 'Slatwall Site Code',
+        description: 'Ultra Commerce Site Code',
         type: 'Symbol',
         required: false,
       },

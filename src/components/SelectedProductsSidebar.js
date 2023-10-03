@@ -130,7 +130,7 @@ const Card = ({ id, product, index, moveCard, setSelectedProducts, selectedProdu
     <div ref={ref} key={product.productID} data-handler-id={handlerId} style={{ opacity, cursor: 'move' }}>
       <EntityListItem
         key={product.productID}
-        thumbnailUrl={product.images.length ? `${preloadData.imageURL}${product.images[1]}` : preloadData.placeHolderImage}
+        thumbnailUrl={product.images.length ? `${process.env.REACT_APP_SLATWALL_URL}${product.images[1]}` : preloadData.placeHolderImage}
         title={product.productName}
         description={product.productCode}
         status=""

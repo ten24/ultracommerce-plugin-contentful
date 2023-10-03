@@ -29,6 +29,8 @@ const ProductsPicker = ({ sdk }) => {
     const payload = {
       entityName: 'product',
       'p:current': currentPage,
+      includeCategories: true,
+      includeImages: true,
       'p:show': preloadData.PREVIEWS_PER_PAGE,
       includeAttributesMetadata: true,
     }
@@ -57,7 +59,9 @@ const ProductsPicker = ({ sdk }) => {
     if (fieldValue && fieldValue.length) {
       const payload = {
         entityName: 'product',
-        'f:productID:in': fieldValue.join(),
+        includeCategories: true,
+        includeImages: true,
+        'f:productID:in': typeof fieldValue === 'string' ? fieldValue : fieldValue.join(','),
         includeAttributesMetadata: true,
       }
 
@@ -67,7 +71,16 @@ const ProductsPicker = ({ sdk }) => {
         })
         .then(response => {
           if (response.isSuccess() && response.success().data && response.success().data.pageRecords) {
-            setSelectedProducts(response.success().data.pageRecords)
+            const initProduct = typeof fieldValue === 'string' ? fieldValue.split(',') : fieldValue
+            const tempArray = new Array(initProduct.length).fill('')
+            const pageRecords = response.success().data.pageRecords
+
+            pageRecords.forEach(product => {
+              let index = initProduct.indexOf(product.productID)
+              tempArray[index] = product
+            })
+
+            setSelectedProducts(tempArray)
           } else {
             sdk.notifier.error('There was an error fetching the data.')
           }
